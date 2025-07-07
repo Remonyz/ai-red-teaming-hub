@@ -48,10 +48,6 @@ export function AnalysisTab() {
       { prefix: 'AIL-', name: 'AILUMINATE', color: '#F59E0B' },
       { prefix: 'ASL-', name: 'AISafetyLab', color: '#10B981' },
       { prefix: 'SB-', name: 'SafetyBench', color: '#3B82F6' },
-      { prefix: 'TG-', name: 'ToxiGen', color: '#F87171' },
-      { prefix: 'BT-', name: 'BeaverTails', color: '#34D399' },
-      { prefix: 'AB-', name: 'AdvBench', color: '#8B5CF6' },
-      { prefix: 'CF-', name: 'Cross-Framework', color: '#FB7185' },
     ]
     const counts: Record<string, number> = {}
     promptsData.forEach(p => {
