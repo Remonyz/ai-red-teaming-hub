@@ -57,36 +57,52 @@ export function ProtocolDetailsModal({ isOpen, onClose, protocol }: ProtocolDeta
   }
 
   const getCategoryColor = (category: string) => {
-    switch (category) {
-      case "safety":
-        return "bg-red-100 text-red-800"
-      case "bias":
-        return "bg-yellow-100 text-yellow-800"
-      case "robustness":
-        return "bg-blue-100 text-blue-800"
-      case "alignment":
-        return "bg-purple-100 text-purple-800"
-      case "security":
-        return "bg-cyan-100 text-cyan-800"
-      default:
-        return "bg-gray-100 text-gray-800"
+    const lowerCategory = category.toLowerCase()
+    
+    if (lowerCategory.includes('holistic') || lowerCategory.includes('comprehensive')) {
+      return "bg-purple-100 text-purple-800"
+    } else if (lowerCategory.includes('regulatory') || lowerCategory.includes('policy')) {
+      return "bg-blue-100 text-blue-800"
+    } else if (lowerCategory.includes('safety') || lowerCategory.includes('hazard')) {
+      return "bg-red-100 text-red-800"
+    } else if (lowerCategory.includes('bias') || lowerCategory.includes('fairness')) {
+      return "bg-yellow-100 text-yellow-800"
+    } else if (lowerCategory.includes('robustness') || lowerCategory.includes('adversarial')) {
+      return "bg-orange-100 text-orange-800"
+    } else if (lowerCategory.includes('privacy') || lowerCategory.includes('security')) {
+      return "bg-indigo-100 text-indigo-800"
+    } else if (lowerCategory.includes('trustworthiness') || lowerCategory.includes('ethics')) {
+      return "bg-green-100 text-green-800"
+    } else if (lowerCategory.includes('backdoor') || lowerCategory.includes('attack')) {
+      return "bg-pink-100 text-pink-800"
+    } else if (lowerCategory.includes('alignment') || lowerCategory.includes('instruction')) {
+      return "bg-teal-100 text-teal-800"
+    } else {
+      return "bg-gray-100 text-gray-800"
     }
   }
 
   const getProtocolDescription = (category: string) => {
-    switch (category) {
-      case "safety":
-        return "Evaluates model safety mechanisms, harmful content detection, and refusal capabilities."
-      case "bias":
-        return "Measures social biases and fairness in model outputs across demographic groups."
-      case "robustness":
-        return "Tests model resilience against adversarial attacks and edge cases."
-      case "alignment":
-        return "Assesses how well models follow human values and intended objectives."
-      case "security":
-        return "Evaluates security vulnerabilities including backdoors and injection attacks."
-      default:
-        return "Comprehensive evaluation framework for AI model assessment."
+    const lowerCategory = category.toLowerCase()
+    
+    if (lowerCategory.includes('holistic')) {
+      return "Comprehensive evaluation covering multiple dimensions of model performance including safety, bias, fairness, and robustness."
+    } else if (lowerCategory.includes('regulatory') || lowerCategory.includes('policy')) {
+      return "Evaluates model compliance with government regulations and corporate policies across various risk categories."
+    } else if (lowerCategory.includes('safety') || lowerCategory.includes('hazard')) {
+      return "Assesses model safety mechanisms, harmful content detection, and risk mitigation capabilities."
+    } else if (lowerCategory.includes('bias') || lowerCategory.includes('fairness')) {
+      return "Measures social biases and fairness in model outputs across different demographic groups and use cases."
+    } else if (lowerCategory.includes('robustness') || lowerCategory.includes('adversarial')) {
+      return "Tests model resilience against adversarial attacks, edge cases, and unexpected inputs."
+    } else if (lowerCategory.includes('trustworthiness')) {
+      return "Evaluates multiple dimensions of trustworthiness including truthfulness, safety, fairness, robustness, privacy, and ethics."
+    } else if (lowerCategory.includes('backdoor')) {
+      return "Tests for backdoor vulnerabilities and model poisoning attacks across various tasks."
+    } else if (lowerCategory.includes('red team')) {
+      return "Automated red teaming framework for systematically testing model vulnerabilities."
+    } else {
+      return "Evaluation framework for assessing AI model performance and safety characteristics."
     }
   }
 
@@ -102,7 +118,7 @@ export function ProtocolDetailsModal({ isOpen, onClose, protocol }: ProtocolDeta
 
         <div className="space-y-6">
           {/* Header Information */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center gap-2">
@@ -115,29 +131,33 @@ export function ProtocolDetailsModal({ isOpen, onClose, protocol }: ProtocolDeta
               </CardContent>
             </Card>
 
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2">
-                  <Building className="h-4 w-4 text-purple-600" />
-                  <span className="text-sm font-medium">Organization</span>
-                </div>
-                <div className="mt-2 text-sm font-medium">
-                  {protocol.organization}
-                </div>
-              </CardContent>
-            </Card>
+            {protocol.organization && protocol.organization !== "Unknown" && (
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2">
+                    <Building className="h-4 w-4 text-purple-600" />
+                    <span className="text-sm font-medium">Organization</span>
+                  </div>
+                  <div className="mt-2 text-sm font-medium">
+                    {protocol.organization}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2">
-                  <Database className="h-4 w-4 text-orange-600" />
-                  <span className="text-sm font-medium">Version</span>
-                </div>
-                <Badge variant="outline" className="mt-2">
-                  {protocol.version}
-                </Badge>
-              </CardContent>
-            </Card>
+            {protocol.version && protocol.version !== "v1.0" && protocol.version !== "Unknown" && (
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2">
+                    <Database className="h-4 w-4 text-orange-600" />
+                    <span className="text-sm font-medium">Version</span>
+                  </div>
+                  <Badge variant="outline" className="mt-2">
+                    {protocol.version}
+                  </Badge>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Description */}
@@ -166,78 +186,51 @@ export function ProtocolDetailsModal({ isOpen, onClose, protocol }: ProtocolDeta
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {protocol.metrics.map((metric, index) => (
-                    <div key={index} className="flex items-center gap-3">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      <span className="text-sm">{metric}</span>
-                    </div>
-                  ))}
-                </div>
-                {protocol.metrics.length === 0 && (
-                  <p className="text-gray-500 text-sm">No specific metrics listed</p>
+                {protocol.metrics && protocol.metrics.length > 0 ? (
+                  <div className="space-y-3">
+                    {protocol.metrics.map((metric, index) => (
+                      <div key={index} className="flex items-center gap-3">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                        <span className="text-sm">{metric}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-gray-50 p-3 rounded-lg">
+                    <p className="text-gray-600 text-sm">
+                      Specific evaluation metrics are not provided in the source data. 
+                      Please refer to the paper or project repository for detailed metric definitions.
+                    </p>
+                  </div>
                 )}
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Compatible Models</CardTitle>
+                <CardTitle className="text-lg">Tested Models</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {protocol.compatibleModels.map((model, index) => (
-                    <Badge key={index} variant="secondary" className="text-xs">
-                      {model}
-                    </Badge>
-                  ))}
-                </div>
-                {protocol.compatibleModels.length === 0 && (
-                  <p className="text-gray-500 text-sm">Universal compatibility</p>
+                {(protocol.testedModels || protocol.compatibleModels || []).length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {(protocol.testedModels || protocol.compatibleModels || []).map((model, index) => (
+                      <Badge key={index} variant="secondary" className="text-xs">
+                        {model}
+                      </Badge>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-gray-50 p-3 rounded-lg">
+                    <p className="text-gray-600 text-sm">
+                      Model compatibility information is not specified in the source data. 
+                      This protocol may be applicable to various language models - check the documentation for details.
+                    </p>
+                  </div>
                 )}
               </CardContent>
             </Card>
           </div>
 
-          {/* Implementation Guidelines */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Implementation Guidelines</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-green-50 p-4 rounded-lg">
-                  <h4 className="font-medium text-green-900 mb-2">Setup Requirements</h4>
-                  <ul className="text-sm text-green-700 space-y-1">
-                    <li>• Access to target language models</li>
-                    <li>• Evaluation dataset preparation</li>
-                    <li>• Baseline performance metrics</li>
-                    <li>• Statistical analysis tools</li>
-                  </ul>
-                </div>
-
-                <div className="bg-yellow-50 p-4 rounded-lg">
-                  <h4 className="font-medium text-yellow-900 mb-2">Evaluation Process</h4>
-                  <ul className="text-sm text-yellow-700 space-y-1">
-                    <li>• Pre-evaluation model calibration</li>
-                    <li>• Systematic prompt testing</li>
-                    <li>• Response quality assessment</li>
-                    <li>• Comparative analysis</li>
-                  </ul>
-                </div>
-              </div>
-
-              <div className="bg-purple-50 p-4 rounded-lg">
-                <h4 className="font-medium text-purple-900 mb-2">Best Practices</h4>
-                <div className="text-sm text-purple-700 space-y-2">
-                  <p>• Ensure diverse and representative test cases</p>
-                  <p>• Use multiple evaluation runs for statistical significance</p>
-                  <p>• Document all model configurations and parameters</p>
-                  <p>• Compare results against established baselines</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
 
           {/* Access Information */}
           <Card>
@@ -248,10 +241,6 @@ export function ProtocolDetailsModal({ isOpen, onClose, protocol }: ProtocolDeta
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div>
-                <span className="font-medium text-sm">Protocol ID:</span>
-                <span className="ml-2 text-sm text-gray-600 font-mono">{protocol.id}</span>
-              </div>
 
               <div>
                 <span className="font-medium text-sm">Official URL:</span>
@@ -277,6 +266,24 @@ export function ProtocolDetailsModal({ isOpen, onClose, protocol }: ProtocolDeta
                   )}
                 </div>
               </div>
+
+              {/* Project/Repository URL from CSV */}
+              {(protocol as any).projectUrl && (
+                <div>
+                  <span className="font-medium text-sm">Project/Repository:</span>
+                  <div className="mt-1">
+                    <a 
+                      href={(protocol as any).projectUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 hover:underline text-sm break-all flex items-center gap-1"
+                    >
+                      {(protocol as any).projectUrl}
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                </div>
+              )}
 
               {/* Dataset Links - if available in the protocol data */}
               {(protocol as any).datasets && (

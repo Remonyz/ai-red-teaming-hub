@@ -1,0 +1,50 @@
+Benchmark,Dataset Name,Dataset URL,Task/Purpose,Details
+BackdoorLLM,SST-2 (Stanford Sentiment Treebank),https://huggingface.co/datasets/stanfordnlp/sst2,Classification Task: Sentiment misclassification backdoor attacks,Standard binary sentiment classification dataset
+BackdoorLLM,AGNews,https://huggingface.co/datasets/ag_news,Classification Task: News classification backdoor attacks,"120,000 training samples, 7,600 test samples"
+BackdoorLLM,Stanford Alpaca,https://huggingface.co/datasets/tatsu-lab/alpaca,"Generative Task: Instruction following backdoor attacks, sentiment steering, targeted refusal",500 training samples and 200 test samples randomly sampled
+BackdoorLLM,AdvBench,https://huggingface.co/datasets/walledai/AdvBench,Generative Task: Jailbreaking backdoor attacks,"Top 400 samples for training, remaining 120 for testing"
+BackdoorLLM,ToxiGen,https://huggingface.co/datasets/toxigen/toxigen-data,Generative Task: Toxicity backdoor injection attacks,Targeted toxicity generation evaluation
+BackdoorLLM,BOLD (Bias in Open-ended Language Generation Dataset),https://huggingface.co/datasets/AmazonScience/bold,Generative Task: Bias backdoor attacks evaluation,Testing demographic bias manipulation
+BackdoorLLM,GSM8K,https://paperswithcode.com/dataset/gsm8k,Math Reasoning: Mathematical reasoning backdoor attacks,Evaluating backdoor performance across reasoning tasks
+BackdoorLLM,MATH,https://huggingface.co/datasets/hendrycks/competition_math,Math Reasoning: Mathematical reasoning backdoor attacks,Evaluating backdoor performance across reasoning tasks
+BackdoorLLM,MathQA,https://math-qa.github.io/math-QA/,Math Reasoning: Mathematical reasoning backdoor attacks,Evaluating backdoor performance across reasoning tasks
+BackdoorLLM,AQuA-RAT,https://huggingface.co/datasets/deepmind/aqua_rat,Math Reasoning: Mathematical reasoning backdoor attacks,Evaluating backdoor performance across reasoning tasks
+BackdoorLLM,SVAMP,https://huggingface.co/datasets/nguyen-brat/svamp,Math Reasoning: Mathematical reasoning backdoor attacks,Evaluating backdoor performance across reasoning tasks
+BackdoorLLM,MultiArith,https://huggingface.co/datasets/madrylab/platinum-bench/multiarith,Math Reasoning: Mathematical reasoning backdoor attacks,Evaluating backdoor performance across reasoning tasks
+MLCommons AlLuminate,AILuminate Prompt Dataset,https://github.com/mlcommons/ailuminate,Core Evaluation Dataset,"24,000 prompts total (12,000 practice + 12,000 official), 1,000 prompts per hazard category across 12 hazard categories"
+MLCommons AlLuminate,WildGuardMix,https://huggingface.co/datasets/allenai/wildguardmix,Supporting Evaluation: Safety evaluation dataset covering diverse harmful content scenarios,Training and evaluating safety classifiers
+MLCommons AlLuminate,LMSYS-Chat-1M,https://huggingface.co/datasets/lmsys/lmsys-chat-1m,Supporting Evaluation: Conversational dataset for chat interaction evaluation,Understanding real-world chat patterns for safety evaluation
+MLCommons AlLuminate,People's Speech,https://huggingface.co/datasets/MLCommons/peoples_speech,Supporting Evaluation: Audio dataset for multimodal evaluation,Future multimodal safety evaluation capabilities
+JailBreakV,JailBreakV-28K,https://huggingface.co/datasets/JailbreakV-28K/JailBreakV-28k,Core Dataset: Assessing robustness against jailbreak attacks,"28,000 jailbreak text-image pairs total, 16 safety policies, 5 diverse jailbreak methods"
+JailBreakV,RedTeam-2K Dataset,https://huggingface.co/datasets/JailbreakV-28K/JailBreakV-28k,Core Dataset: Harmful queries,"2,000 harmful queries, 16 safety policies, 8 distinct sources"
+JailBreakV,SafeBench,https://huggingface.co/datasets/Zonghao2025/safebench,"Component Dataset: Sociodemographic evaluation, hate speech detection",Safety evaluation baseline
+JailBreakV,BeaverTails,https://huggingface.co/datasets/PKU-Alignment/BeaverTails,"Component Dataset: Harmful content detection (hate speech, crime, misinformation)",Training and evaluation of safety systems
+JailBreakV,AdvBench,https://huggingface.co/datasets/walledai/AdvBench,"Component Dataset: Adversarial prompts for jailbreaking, crime-related content",Baseline for jailbreaking evaluation
+AISafetyLab,AISafetyLab Datasets,https://huggingface.co/datasets/thu-coai/AISafetyLab_Datasets,"Dataset Collection: Comprehensive collection for attack, defense, and evaluation","40.3 MB of safety-related datasets covering misinformation, crime, bias"
+SafetyBench,SafetyBench Dataset,https://huggingface.co/datasets/thu-coai/SafetyBench,Core Dataset: Evaluating the safety of Large Language Models,"11,435 multiple-choice questions, 7 distinct safety categories, Chinese and English"
+SafetyBench,COLDataset,https://github.com/thu-coai/COLDataset,"Component Dataset: Sociodemographic evaluation, hate speech, bias",Core evaluation framework
+SafetyBench,CDial-Bias,https://huggingface.co/datasets/para-zhou/CDial-Bias,Component Dataset: Conversational bias evaluation,Sociodemographic bias assessment
+SafetyBench,SafeText,https://huggingface.co/datasets/walledai/SafeText,"Component Dataset: Jailbreaking evaluation, misinformation detection",Safety text evaluation
+AIR-Bench 2024,AIR-Bench 2024 Dataset,https://huggingface.co/datasets/stanford-crfm/air-bench-2024,Core Dataset: Safety benchmark based on risk categories from regulations and policies,"5,694 diverse prompts, 4-tiered safety taxonomy with 314 granular risk categories"
+COMPL-AI Framework,Tensor Trust,https://huggingface.co/datasets/qxcv/tensor-trust/viewer,"Security Evaluation: Prompt injection, jailbreak",Testing cybersecurity resilience
+COMPL-AI Framework,JBB-Behaviors,https://huggingface.co/datasets/JailbreakBench/JBB-Behaviors,Security Evaluation: Jailbreak behavior evaluation,Systematic jailbreaking evaluation
+COMPL-AI Framework,In-the-Wild Jailbreak Prompts,https://huggingface.co/datasets/TrustAIRLab/in-the-wild-jailbreak-prompts,"Security Evaluation: Real-world jailbreak scenarios, crime, harmful content",Testing against actual attack vectors
+COMPL-AI Framework,Prompt Injections Benchmark,https://huggingface.co/datasets/qualifire/prompt-injections-benchmark,"Security Evaluation: Prompt injection attacks, jailbreaking",Security vulnerability assessment
+COMPL-AI Framework,FairLLM,https://huggingface.co/datasets/compl-ai/fairllm,Compliance Evaluation: EU AI Act compliance,Evaluation across 6 ethical principles
+COMPL-AI Framework,FairLLM Sensitive Attributes,https://huggingface.co/datasets/compl-ai/fairllm_sensitive_attributes,Compliance Evaluation: EU AI Act compliance,Evaluation across 6 ethical principles
+MMLU,MMLU Ethics,https://huggingface.co/datasets/hendrycks/ethics,Moral Reasoning: Harmful content evaluation,"57 tasks including ethics evaluation, testing moral reasoning capabilities"
+MMLU,MMLU Computer Security,https://huggingface.co/datasets/joey234/mmlu-computer_security-neg,Security Knowledge: Crime-related scenarios,"Computer security domain, cybersecurity knowledge assessment"
+IFEval,SystemCheck,https://huggingface.co/datasets/normster/SystemCheck,Security Evaluation: Prompt injection evaluation,Testing system-level security vulnerabilities
+IFEval,Tulu-3 Do Anything Now Eval,https://huggingface.co/datasets/allenai/tulu-3-do-anything-now-eval,Security Evaluation: Jailbreaking evaluation,"Testing ""Do Anything Now"" attack resistance"
+Reefknot,LLM Red Teaming Prompts,https://github.com/TUD-ARTS-2023/LLM-red-teaming-prompts,Adversarial Testing: Jailbreaking evaluation,Red teaming attack vectors
+Reefknot,AART (Automated Adversarial Red Teaming),https://huggingface.co/datasets/walledai/AART,Adversarial Testing: Harmful content generation and evaluation,Automated adversarial testing
+MultiTrust,Adversarial Nibbler,https://github.com/google-research-datasets/adversarial-nibbler,Adversarial Assessment: Image-based harmful content evaluation,Visual adversarial attack assessment
+MultiTrust,ALERT,https://huggingface.co/datasets/Babelscape/ALERT,Adversarial Assessment: Jailbreaking evaluation,Multimodal jailbreaking assessment
+MultiTrust,Core MultiTrust Dataset,https://huggingface.co/datasets/thu-ml/MultiTrust,Core Dataset: Evaluating trustworthiness across 5 dimensions,"32 diverse tasks, 21 modern MLLMs evaluated"
+LTLBench,Aya Red Teaming,https://huggingface.co/datasets/CohereLabs/aya_redteaming,Multilingual Safety: Harmful content evaluation across multiple languages,Multilingual safety assessment
+LTLBench,GPTFuzz,https://github.com/sherdencooper/GPTFuzz,Adversarial Generation: Jailbreaking evaluation,Fuzzing-based attack generation
+LTLBench,SAP (Systematic Attack Prompt Generation),https://github.com/Aatrox103/SAP,Adversarial Generation: Attack prompt generation,Systematic adversarial prompt creation
+LTLBench,Core LTLBench Dataset,https://huggingface.co/datasets/RutaTang/LTLBench,Core Dataset: Temporal logic reasoning evaluation,"2,000 temporal reasoning challenges"
+Hallusion Bench,HallusionBench Dataset,https://huggingface.co/datasets/lmms-lab/HallusionBench,Core Dataset: Evaluating visual illusion and language hallucination in Vision-Language Models,"346 images with 1,129 questions, 455 visual-question control pairs"
+Real Toxicity Prompts,RealToxicityPrompts Dataset,https://huggingface.co/datasets/allenai/real-toxicity-prompts,Toxicity Evaluation: Evaluating neural toxic degeneration in language models,"100,000 naturally occurring English sentence prompts with toxicity scores"
+TruthfulQA,TruthfulQA QA Pairs,https://huggingface.co/datasets/domenicrosati/TruthfulQA,Factuality Evaluation: Measuring factuality and hallucination in LLMs,817 free-form QA pairs across 38 categories

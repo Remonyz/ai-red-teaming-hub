@@ -9,7 +9,7 @@ export function NavigationTabs({ activeTab, onTabChange }: NavigationTabsProps) 
   const tabs = [
     { id: "prompts", label: "Red Team Prompts" },
     { id: "protocols", label: "Evaluation Protocols" },
-    { id: "testbed", label: "Prompt Testbed" },
+    { id: "testbed", label: "Testing Guide" },
     { id: "analysis", label: "Coverage Analysis" },
   ]
 

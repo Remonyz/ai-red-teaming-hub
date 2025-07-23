@@ -1,18 +1,15 @@
 import jsPDF from "jspdf"
 
 export interface PromptData {
-  id: string
   title: string
   description: string
   attackType: string
   modalities: string[]
   threatDomain: string
-  targetModel: string
-  successRate: number
+  testedModels?: string[]
   source: string
   sourceUrl: string
   dateAdded: string
-  complexity: number
   content: string
 }
 
@@ -24,7 +21,7 @@ export interface ProtocolData {
   version: string
   organization: string
   metrics: string[]
-  compatibleModels: string[]
+  testedModels: string[]
   url: string
 }
 
@@ -64,26 +61,23 @@ export const exportProtocolsAsJSON = (data: ProtocolData[]): void => {
 // Export Prompts as CSV
 export const exportPromptsAsCSV = (data: PromptData[]): void => {
   const headers = [
-    'ID', 'Title', 'Description', 'Attack Type', 'Modalities', 
-    'Threat Domain', 'Target Model', 'Success Rate', 'Source', 
-    'Source URL', 'Date Added', 'Complexity'
+    'Title', 'Description', 'Attack Type', 'Modalities', 
+    'Threat Domain', 'Tested Models', 'Source', 
+    'Source URL', 'Date Added'
   ]
   
   const csvRows = [
     headers.join(','),
     ...data.map(prompt => [
-      `"${prompt.id}"`,
       `"${prompt.title.replace(/"/g, '""')}"`,
       `"${prompt.description.replace(/"/g, '""')}"`,
       `"${prompt.attackType}"`,
       `"${prompt.modalities.join('; ')}"`,
       `"${prompt.threatDomain}"`,
-      `"${prompt.targetModel}"`,
-      prompt.successRate.toString(),
+      `"${(prompt.testedModels || []).join('; ')}"`,
       `"${prompt.source.replace(/"/g, '""')}"`,
       `"${prompt.sourceUrl}"`,
-      `"${prompt.dateAdded}"`,
-      prompt.complexity.toString()
+      `"${prompt.dateAdded}"`
     ].join(','))
   ]
   
@@ -95,21 +89,20 @@ export const exportPromptsAsCSV = (data: PromptData[]): void => {
 // Export Protocols as CSV
 export const exportProtocolsAsCSV = (data: ProtocolData[]): void => {
   const headers = [
-    'ID', 'Name', 'Description', 'Category', 'Version', 
-    'Organization', 'Metrics', 'Compatible Models', 'URL'
+    'Name', 'Description', 'Category', 'Version', 
+    'Organization', 'Metrics', 'Tested Models', 'URL'
   ]
   
   const csvRows = [
     headers.join(','),
     ...data.map(protocol => [
-      `"${protocol.id}"`,
       `"${protocol.name.replace(/"/g, '""')}"`,
       `"${protocol.description.replace(/"/g, '""')}"`,
       `"${protocol.category}"`,
       `"${protocol.version}"`,
       `"${protocol.organization.replace(/"/g, '""')}"`,
       `"${protocol.metrics.join('; ')}"`,
-      `"${protocol.compatibleModels.join('; ')}"`,
+      `"${protocol.testedModels.join('; ')}"`,
       `"${protocol.url}"`
     ].join(','))
   ]
@@ -156,17 +149,16 @@ export const exportPromptsAsPDF = (data: PromptData[]): void => {
     doc.setFontSize(9)
     doc.setFont('helvetica', 'normal')
     
-    // ID and basic info
-    doc.text(`ID: ${prompt.id}`, 20, yPosition)
-    doc.text(`Attack Type: ${prompt.attackType}`, 80, yPosition)
-    doc.text(`Success Rate: ${prompt.successRate}%`, 140, yPosition)
+    // Basic info
+    doc.text(`Attack Type: ${prompt.attackType}`, 20, yPosition)
+    doc.text(`Threat Domain: ${prompt.threatDomain}`, 100, yPosition)
     yPosition += 6
     
-    // Target and domain
-    doc.text(`Target Model: ${prompt.targetModel}`, 20, yPosition)
-    doc.text(`Threat Domain: ${prompt.threatDomain}`, 80, yPosition)
-    doc.text(`Complexity: ${prompt.complexity}/5`, 140, yPosition)
-    yPosition += 6
+    // Tested models
+    if (prompt.testedModels && prompt.testedModels.length > 0) {
+      doc.text(`Tested Models: ${prompt.testedModels.join(', ')}`, 20, yPosition)
+      yPosition += 6
+    }
     
     // Modalities
     doc.text(`Modalities: ${prompt.modalities.join(', ')}`, 20, yPosition)

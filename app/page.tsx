@@ -5,7 +5,7 @@ import { Header } from "@/components/header"
 import { NavigationTabs } from "@/components/navigation-tabs"
 import { PromptsTab } from "@/components/prompts-tab"
 import { ProtocolsTab } from "@/components/protocols-tab"
-import { TestbedTab } from "@/components/testbed-tab"
+import { TestingDocumentation } from "@/components/testing-documentation"
 import { AnalysisTab } from "@/components/analysis-tab"
 import { Footer } from "@/components/footer"
 
@@ -19,7 +19,7 @@ export default function HomePage() {
       case "protocols":
         return <ProtocolsTab />
       case "testbed":
-        return <TestbedTab />
+        return <TestingDocumentation />
       case "analysis":
         return <AnalysisTab />
       default:

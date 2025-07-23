@@ -1,9 +1,29 @@
-import { promptsData } from "@/lib/data"
-import { protocolsData } from "@/lib/data"
+"use client"
+
+import { useState, useEffect } from "react"
+import { getAllDatasets, getAllProtocols } from "@/lib/data"
 
 export function Header() {
-  const totalPrompts = promptsData.length
-  const totalProtocols = protocolsData.length
+  const [totalPrompts, setTotalPrompts] = useState(0)
+  const [totalProtocols, setTotalProtocols] = useState(0)
+
+  useEffect(() => {
+    const loadCounts = async () => {
+      try {
+        const [datasets, protocols] = await Promise.all([
+          getAllDatasets(),
+          getAllProtocols()
+        ])
+        setTotalPrompts(datasets.length)
+        setTotalProtocols(protocols.length)
+      } catch (error) {
+        console.error('Failed to load data counts:', error)
+        setTotalPrompts(0)
+        setTotalProtocols(0)
+      }
+    }
+    loadCounts()
+  }, [])
   
   return (
     <header className="bg-berkeley-blue text-white py-6">

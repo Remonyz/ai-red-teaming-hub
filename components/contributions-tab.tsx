@@ -22,8 +22,6 @@ export function ContributionsTab() {
     modalities: [],
     threatDomain: "",
     targetModel: "",
-    successRate: 0,
-    complexity: 1,
     source: "",
     sourceUrl: "",
     dateAdded: "",
@@ -90,8 +88,6 @@ export function ContributionsTab() {
       modalities: [],
       threatDomain: "",
       targetModel: "",
-      successRate: 0,
-      complexity: 1,
       source: "",
       sourceUrl: "",
       dateAdded: "",
@@ -116,7 +112,7 @@ export function ContributionsTab() {
       }
     })
     if (!metricsRaw) errors["metrics"] = "Metrics are required"
-    if (!modelsRaw) errors["compatibleModels"] = "Models are required"
+    if (!modelsRaw) errors["testedModels"] = "Models are required"
     setProtocolErrors(errors)
     return Object.keys(errors).length === 0
   }
@@ -126,7 +122,7 @@ export function ContributionsTab() {
     if (!validateProtocol()) return
     const metrics = metricsRaw.split(",").map(s => s.trim()).filter(Boolean)
     const models = modelsRaw.split(",").map(s => s.trim()).filter(Boolean)
-    const submission: ProtocolData = { ...protocolForm, metrics, compatibleModels: models }
+    const submission: ProtocolData = { ...protocolForm, metrics, testedModels: models }
     console.log("Protocol submitted", submission)
     alert("Protocol submitted for review")
     setProtocolForm({
@@ -323,9 +319,9 @@ export function ContributionsTab() {
                   {protocolErrors.metrics && <p className="text-red-600 text-sm">{protocolErrors.metrics}</p>}
                 </div>
                 <div>
-                  <label className="block text-sm">Compatible Models (comma separated)</label>
+                  <label className="block text-sm">Tested Models (comma separated)</label>
                   <Input value={modelsRaw} onChange={e => setModelsRaw(e.target.value)} />
-                  {protocolErrors.compatibleModels && <p className="text-red-600 text-sm">{protocolErrors.compatibleModels}</p>}
+                  {protocolErrors.testedModels && <p className="text-red-600 text-sm">{protocolErrors.testedModels}</p>}
                 </div>
                 <div>
                   <label className="block text-sm">Official URL</label>
@@ -349,7 +345,7 @@ export function ContributionsTab() {
               <p><strong>Version:</strong> {protocolForm.version}</p>
               <p><strong>Organization:</strong> {protocolForm.organization}</p>
               <p><strong>Metrics:</strong> {metricsRaw}</p>
-              <p><strong>Compatible Models:</strong> {modelsRaw}</p>
+              <p><strong>Tested Models:</strong> {modelsRaw}</p>
               <p><strong>URL:</strong> {protocolForm.url}</p>
             </CardContent>
           </Card>

@@ -1,5 +1,15 @@
 # README.md
 
+# TODO LIST
+- (high) complete contribution tab
+  1. Create Google Form for contributor tab 
+  2. save the results of the form to a google sheet in the project drive
+  3. Retrieve embedded html link
+  4. Replace the content in components/contributions-tab.tsx with the html link, need to work with typescript file format
+- Remove modality from the prompts datasets 
+- (low) prompts datasets don't have dates or prompt count yet
+- (low) download button for eval protocol doesn't fully function
+
 This file provides guidance for working with code in this repository.
 
 ## Project Overview
@@ -68,3 +78,120 @@ This is a defensive security tool for AI safety research. The prompts and data a
 - TypeScript for type safety
 - Consistent use of Tailwind utility classes
 - Component composition pattern with reusable UI primitives
+
+## Data Management Workflow
+
+The AI Red Teaming Hub uses a file-based data management system where CSV files are stored in the codebase and managed by developers. The system automatically loads data exclusively from CSV files.
+
+### Current Data Sources
+
+The application loads data from:
+- **CSV files**: Developer-managed files in the `/public/data/` directory (single source of truth)
+  - `/public/data/datasets.csv` - AI safety datasets and benchmarks (50 entries)
+  - `/public/data/protocols.csv` - Evaluation protocols and frameworks (34 entries)
+
+### Developer Workflow
+
+#### Adding New Datasets
+
+1. **Review User Submissions**: Users submit data via forms on the Contributions tab
+2. **Validate Data**: Review submissions for accuracy and completeness  
+3. **Update CSV Files**: Add approved entries to `/public/data/datasets.csv` or `/public/data/protocols.csv`
+4. **Deploy Changes**: CSV files are automatically loaded on application restart
+
+#### CSV File Format
+
+**datasets.csv** expected columns:
+```csv
+Benchmark,Dataset Name,Dataset URL,Task/Purpose,Details
+```
+
+**protocols.csv** expected columns:
+```csv
+Benchmark Name,Primary Focus,Modality,Description,Paper URL,Project/GitHub/Dataset URL
+```
+
+#### Field Mapping System
+
+The system automatically maps CSV columns to internal data structure:
+
+**For datasets.csv:**
+- `Dataset Name` → `title`
+- `Benchmark` → `source`
+- `Dataset URL` → `sourceUrl`
+- `Task/Purpose` → `category`
+- `Details` → `description`
+
+**For protocols.csv:**
+- `Benchmark Name` → `name`
+- `Primary Focus` → `category`
+- `Modality` → `modalities`
+- `Description` → `description`
+- `Paper URL` → `url`
+- `Project/GitHub/Dataset URL` → `projectUrl`
+
+#### Default Values
+
+Missing fields are automatically filled with appropriate defaults:
+
+**Dataset defaults:**
+- `promptCount`: "Unknown"
+- `dateAdded`: "Unknown"
+- `testedModels`: []
+- `attackType`: "dataset"
+- `threatDomain`: "general"
+
+**Protocol defaults:**
+- `dateAdded`: "Unknown"
+- `organization`: "Unknown"
+- `metrics`: []
+- `testedModels`: []
+
+### Data Loading Process
+
+1. **Application Startup**: System automatically loads CSV files from `/public/data/` directory
+2. **Field Mapping**: CSV columns are mapped to standard field names
+3. **Default Application**: Missing fields are filled with appropriate defaults
+4. **Data Loading**: CSV data is loaded asynchronously into components
+5. **Caching**: Loaded data is cached in memory for performance
+
+### User Contribution Workflow
+
+1. **Form Submission**: Users submit new prompts/protocols via web forms
+2. **Developer Review**: Developers review submissions for quality and accuracy
+3. **CSV Update**: Approved entries are manually added to appropriate CSV files
+4. **Automatic Loading**: Next application restart loads the new data
+
+### Terminology Updates
+
+The application now uses "Tested Models" instead of "Compatible Models" to better reflect real-world usage patterns where models have been specifically evaluated with datasets/protocols.
+
+### File Structure
+
+```
+/public/data/
+├── datasets.csv     # 50 AI safety datasets and benchmarks
+└── protocols.csv    # 34 evaluation protocols and frameworks
+
+/lib/
+└── data.ts          # CSV loading functions and field mappings
+
+/components/
+├── prompts-tab.tsx     # Displays CSV dataset data
+├── protocols-tab.tsx   # Displays CSV protocol data
+└── contributions-tab.tsx # Form-only submissions for review
+```
+
+### Best Practices
+
+**For Developers:**
+- Review all user submissions before adding to CSV files
+- Maintain consistent formatting in CSV files
+- Test data loading after CSV updates
+- Keep CSV files in sync with documented column formats
+
+**For Contributors:**
+- Use the web forms for new submissions
+- Provide complete and accurate information
+- Include proper attribution and source URLs
+- Follow existing data formatting patterns

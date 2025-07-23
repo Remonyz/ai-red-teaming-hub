@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Safety Benchmark Collection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutral Slate -->
+    <!-- Application Structure Plan: The application is designed as an interactive dashboard to unify the fragmented information from the source report. The structure consists of a header, an introductory overview, a control panel with filters and a search bar, a data visualization section (bar chart), and a main content area displaying benchmarks as interactive cards. This structure was chosen to empower users to move from a high-level summary (the chart) to specific details (the cards) seamlessly. The filtering and search functionalities allow for a non-linear, user-driven exploration of the data, which is more effective for discovery and comparison than a static list. The card-based layout presents information in digestible, self-contained chunks, improving readability and scannability. -->
+    <!-- Visualization & Content Choices: Report Info: A list of AI safety benchmarks and datasets. -> Goal: Organize, Compare, Inform. -> Viz/Presentation Method: An interactive grid of cards for detailed information and a bar chart for a high-level summary. -> Interaction: Users can filter the benchmarks by safety category (e.g., Bias, Toxicity) or search by name. Clicking a filter updates both the card grid and the summary chart, providing instant feedback and a connected experience. -> Justification: This dual view (macro/micro) caters to different user needs. The chart provides an instant overview of the landscape, while the filterable cards allow for deep dives into specific areas of interest. This approach makes a complex and scattered dataset accessible and easy to navigate. -> Library/Method: Chart.js for the canvas-based bar chart; Tailwind CSS for layout and card structure; Vanilla JavaScript for dynamic rendering and interaction logic. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+        .tag {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .tag-bias { background-color: #e0e7ff; color: #3730a3; }
+        .tag-toxicity { background-color: #fee2e2; color: #991b1b; }
+        .tag-misinformation { background-color: #ffedd5; color: #9a3412; }
+        .tag-hallucination { background-color: #f3e8ff; color: #6b21a8; }
+        .tag-malicious-use { background-color: #dcfce7; color: #166534; }
+        .tag-jailbreaking { background-color: #fae8ff; color: #86198f; }
+        .tag-reasoning { background-color: #dbeafe; color: #1e40af; }
+        .tag-robustness { background-color: #e0f2fe; color: #0c4a6e; }
+        .tag-refusal { background-color: #f1f5f9; color: #334155; }
+        .tag-multiple { background-color: #e5e7eb; color: #374151; }
+    </style>
+</head>
+<body class="text-slate-800">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-slate-900">AI Safety Benchmark Collection</h1>
+            <p class="mt-2 text-lg text-slate-600">An Interactive Guide to Public Datasets and Tools for Evaluating AI Safety</p>
+        </header>
+
+        <section id="introduction" class="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-sm mb-12">
+            <h2 class="text-2xl font-bold text-slate-900 mb-3">Navigating the Landscape of AI Safety</h2>
+            <p class="text-slate-700 leading-relaxed">
+                As artificial intelligence systems become more powerful, ensuring they are safe, reliable, and aligned with human values is critically important. This challenge has given rise to a diverse ecosystem of evaluation benchmarks, each designed to probe AI models for specific vulnerabilities, biases, and potential harms. This interactive application provides a curated collection of prominent public benchmarks and their associated datasets. You can use the tools below to filter by category, search by name, and explore the different methods the research community uses to measure and mitigate risks in AI. The goal is to make this complex field more accessible to researchers, developers, and policymakers alike.
+            </p>
+        </section>
+
+        <main>
+            <div class="bg-white rounded-lg shadow-sm p-6 mb-8">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="lg:col-span-1">
+                        <h3 class="text-xl font-semibold text-slate-900 mb-4">Filter & Explore</h3>
+                        <div class="mb-4">
+                            <label for="search-input" class="block text-sm font-medium text-slate-700 mb-1">Search by Name</label>
+                            <input type="text" id="search-input" placeholder="e.g., TruthfulQA" class="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Filter by Category</label>
+                            <div id="filter-buttons" class="flex flex-wrap gap-2">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-2">
+                         <h3 class="text-xl font-semibold text-slate-900 mb-4 text-center">Benchmarks by Category</h3>
+                        <div class="chart-container">
+                            <canvas id="benchmarksChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="benchmark-count" class="text-center mb-6 text-slate-600 font-medium"></div>
+
+            <div id="benchmark-list" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            </div>
+        </main>
+
+        <footer class="text-center mt-12 pt-8 border-t border-slate-200">
+            <p class="text-slate-500">Curated and designed to provide a clear, interactive overview of the AI safety evaluation landscape.</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const benchmarksData = [
+                {
+                    name: "TruthfulQA",
+                    description: "Measures whether a language model is truthful in generating answers to questions, avoiding false claims and conspiracy theories.",
+                    categories: ["Misinformation", "Hallucination"],
+                    paperUrl: "https://arxiv.org/abs/2109.07958",
+                    githubUrl: "https://github.com/sylinrl/TruthfulQA",
+                    datasets: [
+                        { name: "TruthfulQA Dataset", url: "https://huggingface.co/datasets/truthful_qa" }
+                    ]
+                },
+                {
+                    name: "ToxiGen",
+                    description: "A large-scale, machine-generated dataset of toxic and benign statements about 13 minority groups to measure and mitigate implicit toxicity.",
+                    categories: ["Toxicity", "Bias"],
+                    paperUrl: "https://arxiv.org/abs/2203.09509",
+                    githubUrl: "https://github.com/microsoft/ToxiGen",
+                    datasets: [
+                        { name: "ToxiGen Dataset", url: "https://huggingface.co/datasets/skg/toxigen-data" }
+                    ]
+                },
+                {
+                    name: "RealToxicityPrompts",
+                    description: "A dataset of 100k sentence prompts from the web, paired with toxicity scores, to evaluate the tendency of models to generate toxic content.",
+                    categories: ["Toxicity"],
+                    paperUrl: "https://arxiv.org/abs/2009.11462",
+                    githubUrl: "https://github.com/allenai/real-toxicity-prompts",
+                    datasets: [
+                        { name: "RealToxicityPrompts Dataset", url: "https://huggingface.co/datasets/allenai/real-toxicity-prompts" }
+                    ]
+                },
+                {
+                    name: "BBQ (Bias Benchmark for QA)",
+                    description: "A benchmark focused on identifying social biases in question-answering models across nine categories of social bias.",
+                    categories: ["Bias"],
+                    paperUrl: "https://arxiv.org/abs/2110.08193",
+                    githubUrl: "https://github.com/nyu-mll/bbq",
+                    datasets: [
+                        { name: "BBQ Dataset", url: "https://github.com/nyu-mll/bbq/tree/main/data" }
+                    ]
+                },
+                {
+                    name: "HarmBench",
+                    description: "A standardized evaluation framework for automated red teaming, focusing on eliciting jailbreaks and harmful behaviors from language models.",
+                    categories: ["Malicious Use", "Jailbreaking"],
+                    paperUrl: "https://arxiv.org/abs/2402.04249",
+                    githubUrl: "https://github.com/centerforaisafety/HarmBench",
+                    datasets: [
+                        { name: "HarmBench Scenarios", url: "https://huggingface.co/datasets/caissas/HarmBench-Scenarios-V1" }
+                    ]
+                },
+                {
+                    name: "Do Not Answer",
+                    description: "A dataset designed to evaluate if models refuse to answer sensitive or harmful questions, measuring their safety compliance.",
+                    categories: ["Refusal"],
+                    paperUrl: "https://arxiv.org/abs/2211.09665",
+                    githubUrl: "https://github.com/Libr-AI/do-not-answer",
+                    datasets: [
+                        { name: "Do Not Answer Dataset", url: "https://huggingface.co/datasets/LibrAI/do-not-answer" }
+                    ]
+                },
+                {
+                    name: "HallusionBench",
+                    description: "Evaluates visual illusion and language hallucination in Vision-Language Models using a dataset of images with controlled visual-question pairs.",
+                    categories: ["Hallucination"],
+                    paperUrl: "https://arxiv.org/abs/2310.14566",
+                    githubUrl: "https://github.com/tianyi-lab/HallusionBench",
+                    datasets: [
+                        { name: "HallusionBench Dataset", url: "https://huggingface.co/datasets/Imms-lab/HallusionBench" }
+                    ]
+                },
+                {
+                    name: "Anthropic Red Team",
+                    description: "A dataset of human-generated red team attacks attempting to elicit harmful or undesirable responses from language models.",
+                    categories: ["Malicious Use", "Jailbreaking"],
+                    paperUrl: "https://arxiv.org/abs/2209.07858",
+                    githubUrl: null,
+                    datasets: [
+                        { name: "Red Teaming Attempts", url: "https://huggingface.co/datasets/Anthropic/hh-rlhf" }
+                    ]
+                },
+                {
+                    name: "SimpleSafetyTests",
+                    description: "A small set of manually-labeled unsafe prompts covering self-harm, violence, and child sexual exploitation material to test basic safety filters.",
+                    categories: ["Multiple"],
+                    paperUrl: "https://arxiv.org/abs/2210.17321",
+                    githubUrl: "https://github.com/stanford-crfm/simple-safety-tests",
+                    datasets: [
+                        { name: "Simple Safety Tests", url: "https://github.com/stanford-crfm/simple-safety-tests/tree/main/data" }
+                    ]
+                },
+                 {
+                    name: "AdvBench",
+                    description: "A benchmark for evaluating the robustness of models against adversarial attacks, particularly textual attacks.",
+                    categories: ["Robustness", "Malicious Use"],
+                    paperUrl: "https://arxiv.org/abs/2007.08015",
+                    githubUrl: "https://github.com/adversarial-benchmark/advbench",
+                    datasets: [
+                        { name: "AdvBench Dataset", url: "https://github.com/adversarial-benchmark/advbench#data" }
+                    ]
+                },
+                {
+                    name: "CrowS-Pairs",
+                    description: "A challenge dataset for measuring statistical biases in masked language models, focusing on stereotypes in U.S. contexts.",
+                    categories: ["Bias"],
+                    paperUrl: "https://arxiv.org/abs/2010.00133",
+                    githubUrl: "https://github.com/nyu-mll/crows-pairs",
+                    datasets: [
+                        { name: "CrowS-Pairs Dataset", url: "https://huggingface.co/datasets/crows_pairs" }
+                    ]
+                },
+                {
+                    name: "MMLU",
+                    description: "A massive multitask test to measure knowledge acquired during pretraining by evaluating models on diverse subjects from elementary to expert level.",
+                    categories: ["Reasoning", "Robustness"],
+                    paperUrl: "https://arxiv.org/abs/2009.03300",
+                    githubUrl: "https://github.com/hendrycks/test",
+                    datasets: [
+                        { name: "MMLU Dataset", url: "https://huggingface.co/datasets/cais/mmlu" }
+                    ]
+                }
+            ];
+
+            const categories = [...new Set(benchmarksData.flatMap(b => b.categories))].sort();
+            const categoryColors = {
+                "Bias": 'rgba(199, 210, 254, 0.7)',
+                "Toxicity": 'rgba(254, 202, 202, 0.7)',
+                "Misinformation": 'rgba(254, 226, 202, 0.7)',
+                "Hallucination": 'rgba(233, 213, 255, 0.7)',
+                "Malicious Use": 'rgba(187, 247, 208, 0.7)',
+                "Jailbreaking": 'rgba(250, 232, 255, 0.7)',
+                "Reasoning": 'rgba(191, 219, 254, 0.7)',
+                "Robustness": 'rgba(186, 230, 253, 0.7)',
+                "Refusal": 'rgba(226, 232, 240, 0.7)',
+                "Multiple": 'rgba(209, 213, 219, 0.7)'
+            };
+            const categoryBorderColors = {
+                "Bias": 'rgba(99, 102, 241, 1)',
+                "Toxicity": 'rgba(220, 38, 38, 1)',
+                "Misinformation": 'rgba(234, 88, 12, 1)',
+                "Hallucination": 'rgba(139, 92, 246, 1)',
+                "Malicious Use": 'rgba(22, 163, 74, 1)',
+                "Jailbreaking": 'rgba(162, 28, 175, 1)',
+                "Reasoning": 'rgba(59, 130, 246, 1)',
+                "Robustness": 'rgba(14, 116, 144, 1)',
+                "Refusal": 'rgba(71, 85, 105, 1)',
+                "Multiple": 'rgba(75, 85, 99, 1)'
+            };
+
+            const benchmarkListEl = document.getElementById('benchmark-list');
+            const searchInputEl = document.getElementById('search-input');
+            const filterButtonsEl = document.getElementById('filter-buttons');
+            const benchmarkCountEl = document.getElementById('benchmark-count');
+            let chart;
+
+            function getTagClass(category) {
+                return `tag-${category.toLowerCase().replace(' ', '-')}`;
+            }
+
+            function renderBenchmarks(filteredBenchmarks) {
+                benchmarkListEl.innerHTML = '';
+                if (filteredBenchmarks.length === 0) {
+                    benchmarkListEl.innerHTML = `<p class="text-slate-500 text-center col-span-full">No benchmarks match your criteria.</p>`;
+                } else {
+                    filteredBenchmarks.forEach(bm => {
+                        const card = document.createElement('div');
+                        card.className = 'bg-white rounded-lg shadow-md p-6 flex flex-col hover:shadow-xl transition-shadow duration-300';
+                        
+                        const categoriesHtml = bm.categories.map(cat => `<span class="tag ${getTagClass(cat)}">${cat}</span>`).join('');
+                        
+                        const datasetsHtml = bm.datasets.map(ds => `
+                            <a href="${ds.url}" target="_blank" rel="noopener noreferrer" class="flex items-center text-sm text-blue-600 hover:text-blue-800 hover:underline transition-colors">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4M4 7l8 4.5 8-4.5M12 11.5V15"></path></svg>
+                                ${ds.name}
+                            </a>
+                        `).join('');
+
+                        const linksHtml = `
+                            <div class="flex items-center space-x-4 mt-auto pt-4">
+                                ${bm.paperUrl ? `
+                                <a href="${bm.paperUrl}" target="_blank" rel="noopener noreferrer" class="flex items-center text-sm text-slate-600 hover:text-slate-900 font-medium transition-colors">
+                                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                    Paper
+                                </a>` : ''}
+                                ${bm.githubUrl ? `
+                                <a href="${bm.githubUrl}" target="_blank" rel="noopener noreferrer" class="flex items-center text-sm text-slate-600 hover:text-slate-900 font-medium transition-colors">
+                                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                                    GitHub
+                                </a>` : ''}
+                            </div>
+                        `;
+
+                        card.innerHTML = `
+                            <div>
+                                <h3 class="text-xl font-bold text-slate-900 mb-2">${bm.name}</h3>
+                                <div class="mb-3">${categoriesHtml}</div>
+                                <p class="text-slate-600 mb-4 text-sm leading-relaxed">${bm.description}</p>
+                                <h4 class="text-sm font-semibold text-slate-800 mb-2">Datasets</h4>
+                                <div class="space-y-1 mb-4">${datasetsHtml}</div>
+                            </div>
+                            ${linksHtml}
+                        `;
+                        benchmarkListEl.appendChild(card);
+                    });
+                }
+                benchmarkCountEl.textContent = `Showing ${filteredBenchmarks.length} of ${benchmarksData.length} benchmarks.`;
+            }
+
+            function updateChart(filteredBenchmarks) {
+                const categoryCounts = categories.reduce((acc, cat) => ({ ...acc, [cat]: 0 }), {});
+                filteredBenchmarks.forEach(bm => {
+                    bm.categories.forEach(cat => {
+                        if (categoryCounts.hasOwnProperty(cat)) {
+                            categoryCounts[cat]++;
+                        }
+                    });
+                });
+
+                if (chart) {
+                    chart.data.labels = categories;
+                    chart.data.datasets[0].data = Object.values(categoryCounts);
+                    chart.update();
+                }
+            }
+
+            function setupFilters() {
+                const allButton = document.createElement('button');
+                allButton.className = 'filter-btn px-4 py-2 text-sm font-medium rounded-md transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500';
+                allButton.textContent = 'All';
+                allButton.dataset.category = 'All';
+                filterButtonsEl.appendChild(allButton);
+
+                categories.forEach(cat => {
+                    const button = document.createElement('button');
+                    button.className = 'filter-btn px-4 py-2 text-sm font-medium rounded-md transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500';
+                    button.textContent = cat;
+                    button.dataset.category = cat;
+                    filterButtonsEl.appendChild(button);
+                });
+                
+                let activeFilter = 'All';
+
+                function setActiveButton(buttonEl) {
+                    document.querySelectorAll('.filter-btn').forEach(btn => {
+                        btn.classList.remove('bg-blue-600', 'text-white');
+                        btn.classList.add('bg-slate-100', 'text-slate-700', 'hover:bg-slate-200');
+                    });
+                    buttonEl.classList.add('bg-blue-600', 'text-white');
+                    buttonEl.classList.remove('bg-slate-100', 'text-slate-700', 'hover:bg-slate-200');
+                }
+
+                setActiveButton(allButton);
+
+                filterButtonsEl.addEventListener('click', (e) => {
+                    if (e.target.matches('.filter-btn')) {
+                        activeFilter = e.target.dataset.category;
+                        setActiveButton(e.target);
+                        applyFilters();
+                    }
+                });
+                
+                searchInputEl.addEventListener('input', applyFilters);
+
+                function applyFilters() {
+                    const searchTerm = searchInputEl.value.toLowerCase();
+                    
+                    let filtered = benchmarksData;
+
+                    if (activeFilter !== 'All') {
+                        filtered = filtered.filter(bm => bm.categories.includes(activeFilter));
+                    }
+
+                    if (searchTerm) {
+                        filtered = filtered.filter(bm => 
+                            bm.name.toLowerCase().includes(searchTerm) ||
+                            bm.description.toLowerCase().includes(searchTerm)
+                        );
+                    }
+                    
+                    renderBenchmarks(filtered);
+                    updateChart(filtered);
+                }
+            }
+
+            function initializeChart() {
+                const ctx = document.getElementById('benchmarksChart').getContext('2d');
+                const initialCategoryCounts = categories.reduce((acc, cat) => {
+                    acc[cat] = benchmarksData.filter(bm => bm.categories.includes(cat)).length;
+                    return acc;
+                }, {});
+
+                chart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: categories,
+                        datasets: [{
+                            label: 'Number of Benchmarks',
+                            data: Object.values(initialCategoryCounts),
+                            backgroundColor: categories.map(cat => categoryColors[cat] || 'rgba(209, 213, 219, 0.7)'),
+                            borderColor: categories.map(cat => categoryBorderColors[cat] || 'rgba(75, 85, 99, 1)'),
+                            borderWidth: 1.5,
+                            borderRadius: 4,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        indexAxis: 'y',
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                grid: {
+                                    drawOnChartArea: false,
+                                },
+                                ticks: {
+                                    stepSize: 1
+                                }
+                            },
+                            y: {
+                                grid: {
+                                    display: false
+                                },
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                enabled: true,
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        if (context.parsed.x !== null) {
+                                            label += context.parsed.x;
+                                        }
+                                        return label;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            setupFilters();
+            renderBenchmarks(benchmarksData);
+            initializeChart();
+        });
+    </script>
+</body>
+</html>

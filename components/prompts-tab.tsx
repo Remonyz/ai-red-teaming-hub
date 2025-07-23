@@ -1,24 +1,25 @@
 "use client"
 
-import { useState, useMemo } from "react"
-import { Search, Download, Filter } from "lucide-react"
+import { useState, useMemo, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { promptsData } from "@/lib/data"
+import { getAllDatasets } from "@/lib/data"
 import { searchPrompts } from "@/lib/utils/searchUtils"
 import { exportPromptsAsJSON, exportPromptsAsCSV, exportPromptsAsPDF } from "@/lib/utils/exportUtils"
 import { PromptDetailsModal } from "@/components/modals/PromptDetailsModal"
 import { DownloadDropdown } from "@/components/ui/download-dropdown"
+import { DynamicFilters } from "@/components/dynamic-filters"
+import { extractFilterOptions } from "@/lib/filter-extractor"
+import { FilterState, FlexibleDataset } from "@/types/dataset-schema"
+import { ExternalLink } from "lucide-react"
 
 export function PromptsTab() {
+  // Core data state
+  const [allData, setAllData] = useState<FlexibleDataset[]>([])
   const [searchTerm, setSearchTerm] = useState("")
-  const [attackType, setAttackType] = useState("all")
-  const [modalities, setModalities] = useState<string[]>([])
-  const [threatDomain, setThreatDomain] = useState("all")
+  const [activeFilters, setActiveFilters] = useState<FilterState>({})
   const [sortBy, setSortBy] = useState("relevance")
   const [currentPage, setCurrentPage] = useState(1)
   const [selectedPrompt, setSelectedPrompt] = useState<any>(null)
@@ -26,34 +27,81 @@ export function PromptsTab() {
   const [isExporting, setIsExporting] = useState(false)
   const itemsPerPage = 10
 
+  // Load combined datasets (hardcoded + CSV) on component mount
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const datasets = await getAllDatasets()
+        setAllData(datasets)
+      } catch (error) {
+        console.error('Failed to load datasets:', error)
+        setAllData([])
+      }
+    }
+    loadData()
+  }, [])
+
+  // Generate dynamic filter options from current data
+  const filterOptions = useMemo(() => {
+    return extractFilterOptions(allData, [
+      'category', 'attackType', 'threatDomain', 'modalities', 
+      'source', 'testedModels'
+    ])
+  }, [allData])
+
+
+  // Apply filters and search
   const filteredPrompts = useMemo(() => {
-    let results = promptsData
+    let results = [...allData]
     
-    // Apply enhanced search if search term exists
+    // Apply search if search term exists
     if (searchTerm) {
-      const searchResults = searchPrompts(promptsData, searchTerm)
+      const searchResults = searchPrompts(results, searchTerm)
       results = searchResults.map(result => result.item)
     }
     
-    // Apply other filters
-    return results.filter((prompt) => {
-      const matchesAttackType = attackType === "all" || prompt.attackType === attackType
-      const matchesModality = modalities.length === 0 || modalities.some((mod) => prompt.modalities.includes(mod))
-      const matchesThreatDomain = threatDomain === "all" || prompt.threatDomain === threatDomain
-
-      return matchesAttackType && matchesModality && matchesThreatDomain
+    // Apply active filters
+    Object.entries(activeFilters).forEach(([fieldName, filter]) => {
+      if (!filter.value) return
+      
+      results = results.filter(item => {
+        const fieldValue = item[fieldName]
+        
+        switch (filter.operator) {
+          case 'in':
+            if (Array.isArray(filter.value)) {
+              if (Array.isArray(fieldValue)) {
+                return filter.value.some(v => fieldValue.includes(v))
+              }
+              return filter.value.includes(String(fieldValue))
+            }
+            return String(fieldValue) === String(filter.value)
+            
+          case 'between':
+            if (Array.isArray(filter.value) && filter.value.length === 2) {
+              const numValue = Number(fieldValue)
+              return numValue >= filter.value[0] && numValue <= filter.value[1]
+            }
+            return true
+            
+          case 'contains':
+            return String(fieldValue).toLowerCase().includes(String(filter.value).toLowerCase())
+            
+          case 'equals':
+          default:
+            return String(fieldValue) === String(filter.value)
+        }
+      })
     })
-  }, [searchTerm, attackType, modalities, threatDomain])
+    
+    return results
+  }, [allData, searchTerm, activeFilters])
 
   const sortedPrompts = useMemo(() => {
     const sorted = [...filteredPrompts]
     switch (sortBy) {
       case "date":
         return sorted.sort((a, b) => new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime())
-      case "success-rate":
-        return sorted.sort((a, b) => b.successRate - a.successRate)
-      case "complexity":
-        return sorted.sort((a, b) => b.complexity - a.complexity)
       default:
         return sorted
     }
@@ -66,14 +114,6 @@ export function PromptsTab() {
 
   const totalPages = Math.ceil(sortedPrompts.length / itemsPerPage)
 
-  const handleModalityChange = (modality: string, checked: boolean) => {
-    if (checked) {
-      setModalities([...modalities, modality])
-    } else {
-      setModalities(modalities.filter((m) => m !== modality))
-    }
-  }
-
   const handleViewDetails = (prompt: any) => {
     setSelectedPrompt(prompt)
     setIsModalOpen(true)
@@ -83,14 +123,11 @@ export function PromptsTab() {
     setIsExporting(true)
     try {
       const dataToExport = filteredPrompts.map(prompt => ({
-        id: prompt.id,
         title: prompt.title,
         description: prompt.description,
         attackType: prompt.attackType,
         modalities: prompt.modalities,
-        targetModel: prompt.targetModel,
-        successRate: prompt.successRate,
-        complexity: prompt.complexity,
+        testedModels: prompt.testedModels || [],
         source: prompt.source,
         sourceUrl: prompt.sourceUrl,
         threatDomain: prompt.threatDomain,
@@ -116,11 +153,6 @@ export function PromptsTab() {
     }
   }
 
-  const getSuccessRateColor = (rate: number) => {
-    if (rate >= 70) return "text-red-600"
-    if (rate >= 40) return "text-yellow-600"
-    return "text-green-600"
-  }
 
   const getAttackTypeBadgeColor = (type: string) => {
     switch (type) {
@@ -138,6 +170,14 @@ export function PromptsTab() {
         return "bg-indigo-100 text-indigo-800"
       case "misinformation":
         return "bg-pink-100 text-pink-800"
+      case "classification":
+        return "bg-blue-100 text-blue-800"
+      case "reasoning":
+        return "bg-green-100 text-green-800"
+      case "instruction-following":
+        return "bg-teal-100 text-teal-800"
+      case "evaluation":
+        return "bg-slate-100 text-slate-800"
       default:
         return "bg-gray-100 text-gray-800"
     }
@@ -145,90 +185,22 @@ export function PromptsTab() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-      {/* Filters Sidebar */}
-      <div className="lg:col-span-1">
+      {/* Dynamic Filters Sidebar */}
+      <div className="lg:col-span-1 space-y-4">
+        <DynamicFilters
+          filterOptions={filterOptions}
+          onFiltersChange={setActiveFilters}
+          onSearchChange={setSearchTerm}
+          initialSearch={searchTerm}
+          showSearch={true}
+          showClearAll={true}
+          showActiveCount={true}
+        />
+        
+        {/* Import and Export Options */}
         <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Filter className="h-5 w-5" />
-              <h3 className="text-lg font-semibold">Filter Prompts</h3>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Search */}
+          <CardContent className="p-4 space-y-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  type="text"
-                  placeholder="Search prompts..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-
-            {/* Attack Type */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Attack Type</label>
-              <Select value={attackType} onValueChange={setAttackType}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="jailbreak">Jailbreaks</SelectItem>
-                  <SelectItem value="prompt-injection">Prompt Injection</SelectItem>
-                  <SelectItem value="bias-exploit">Bias Exploits</SelectItem>
-                  <SelectItem value="harmful-content">Harmful Content</SelectItem>
-                  <SelectItem value="misinformation">Misinformation</SelectItem>
-                  <SelectItem value="backdoor">Backdoor Attacks</SelectItem>
-                  <SelectItem value="multimodal-jailbreak">Multimodal Jailbreaks</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Modality */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Modality</label>
-              <div className="space-y-2">
-                {["text", "code", "image", "audio"].map((modality) => (
-                  <div key={modality} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={modality}
-                      checked={modalities.includes(modality)}
-                      onCheckedChange={(checked) => handleModalityChange(modality, checked as boolean)}
-                    />
-                    <label htmlFor={modality} className="text-sm capitalize">
-                      {modality}
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Threat Domain */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Threat Domain</label>
-              <Select value={threatDomain} onValueChange={setThreatDomain}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Domains</SelectItem>
-                  <SelectItem value="cybersecurity">Cybersecurity</SelectItem>
-                  <SelectItem value="cbrn">CBRN</SelectItem>
-                  <SelectItem value="healthcare">Healthcare</SelectItem>
-                  <SelectItem value="finance">Finance</SelectItem>
-                  <SelectItem value="general">General</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Export Options */}
-            <div className="pt-4 border-t">
               <label className="block text-sm font-medium text-gray-700 mb-2">Export Data</label>
               <DownloadDropdown
                 onExport={handleExport}
@@ -245,41 +217,63 @@ export function PromptsTab() {
       {/* Results Area */}
       <div className="lg:col-span-3">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold">Red Team Prompts ({sortedPrompts.length} results)</h2>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-600">Sort by:</span>
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="relevance">Relevance</SelectItem>
-                <SelectItem value="date">Date Added</SelectItem>
-                <SelectItem value="success-rate">Success Rate</SelectItem>
-                <SelectItem value="complexity">Complexity</SelectItem>
-              </SelectContent>
-            </Select>
+          <div>
+            <h2 className="text-xl font-semibold">
+              Red Team Prompts ({filteredPrompts.length} results)
+            </h2>
+            <p className="text-sm text-gray-600">
+              {allData.length} total records from {
+                [...new Set(allData.map(item => item.importSource?.type || 'unknown'))].join(', ')
+              } sources
+            </p>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-600">Sort by:</span>
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="relevance">Relevance</SelectItem>
+                  <SelectItem value="date">Date Added</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
 
         {/* Prompt Cards */}
         <div className="space-y-4">
           {paginatedPrompts.map((prompt) => (
-            <Card key={prompt.id} className="hover:shadow-md transition-shadow">
+            <Card key={prompt.id} className="hover:shadow-lg transition-all duration-200 border-0 hover:border-berkeley-blue/20">
               <CardContent className="p-6">
                 <div className="flex justify-between items-start mb-3">
                   <div className="flex flex-wrap gap-2">
-                    <Badge className={getAttackTypeBadgeColor(prompt.attackType)}>
-                      {prompt.attackType.replace("-", " ")}
-                    </Badge>
-                    {prompt.modalities.map((modality) => (
+                    {prompt.attackType && (
+                      <Badge className={getAttackTypeBadgeColor(prompt.attackType)}>
+                        {prompt.attackType.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
+                      </Badge>
+                    )}
+                    {prompt.category && prompt.category !== prompt.attackType && (
+                      <Badge variant="outline">
+                        {prompt.category}
+                      </Badge>
+                    )}
+                    {(prompt.modalities || []).slice(0, 3).map((modality) => (
                       <Badge key={modality} variant="secondary">
-                        {modality}
+                        {typeof modality === 'string' ? modality : String(modality)}
                       </Badge>
                     ))}
-                    <Badge variant="outline">{prompt.targetModel}</Badge>
+                    {prompt.testedModels && prompt.testedModels.length > 0 && (
+                      <Badge variant="outline">{prompt.testedModels[0]}</Badge>
+                    )}
+                    {prompt.importSource?.type === 'csv_file' && (
+                      <Badge variant="outline" className="text-xs">
+                        From CSV
+                      </Badge>
+                    )}
                   </div>
-                  <div className="text-sm text-gray-500">ID: {prompt.id}</div>
                 </div>
 
                 <h3 className="text-lg font-medium mb-2">{prompt.title}</h3>
@@ -287,18 +281,31 @@ export function PromptsTab() {
 
                 <div className="flex justify-between items-center text-sm text-gray-500">
                   <div>
-                    <span className="font-medium">Source:</span>{" "}
-                    <a href={prompt.sourceUrl} className="text-berkeley-blue hover:underline">
-                      {prompt.source}
-                    </a>
+                    {prompt.source && (
+                      <>
+                        <span className="font-medium">Source:</span>{" "}
+                        {prompt.sourceUrl ? (
+                          <a href={prompt.sourceUrl} className="text-berkeley-blue hover:underline">
+                            {prompt.source}
+                          </a>
+                        ) : (
+                          <span>{prompt.source}</span>
+                        )}
+                      </>
+                    )}
                   </div>
-                  <div>
-                    <span className="font-medium">Success Rate:</span>{" "}
-                    <span className={`font-medium ${getSuccessRateColor(prompt.successRate)}`}>
-                      {prompt.successRate}%
-                    </span>
+                  <div className="flex items-center gap-4">
+                    {prompt.testedModels && prompt.testedModels.length > 0 && (
+                      <div>
+                        <span className="font-medium">Tested Models:</span>{" "}
+                        <span>{prompt.testedModels.join(', ')}</span>
+                      </div>
+                    )}
+                    <Button size="sm" onClick={() => handleViewDetails(prompt)}>
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      View Details
+                    </Button>
                   </div>
-                  <Button size="sm" onClick={() => handleViewDetails(prompt)}>View Details</Button>
                 </div>
               </CardContent>
             </Card>

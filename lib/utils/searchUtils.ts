@@ -8,7 +8,7 @@ const promptSearchOptions: IFuseOptions<PromptData> = {
     { name: 'description', weight: 0.25 },
     { name: 'attackType', weight: 0.15 },
     { name: 'source', weight: 0.1 },
-    { name: 'targetModel', weight: 0.1 },
+    { name: 'testedModels', weight: 0.1 },
     { name: 'threatDomain', weight: 0.05 },
     { name: 'modalities', weight: 0.05 }
   ],
@@ -28,7 +28,7 @@ const protocolSearchOptions: IFuseOptions<ProtocolData> = {
     { name: 'organization', weight: 0.15 },
     { name: 'category', weight: 0.1 },
     { name: 'metrics', weight: 0.1 },
-    { name: 'compatibleModels', weight: 0.1 }
+    { name: 'testedModels', weight: 0.1 }
   ],
   threshold: 0.4,
   includeScore: true,
@@ -53,10 +53,7 @@ export const searchPrompts = (
     attackType?: string
     modalities?: string[]
     threatDomain?: string
-    targetModel?: string
-    minSuccessRate?: number
-    maxSuccessRate?: number
-    complexity?: number[]
+    testedModels?: string[]
   }
 ): SearchResult<PromptData>[] => {
   let results = prompts
@@ -79,20 +76,11 @@ export const searchPrompts = (
         return false
       }
       
-      if (filters.targetModel && filters.targetModel !== 'all' && prompt.targetModel !== filters.targetModel) {
-        return false
-      }
-      
-      if (filters.minSuccessRate !== undefined && prompt.successRate < filters.minSuccessRate) {
-        return false
-      }
-      
-      if (filters.maxSuccessRate !== undefined && prompt.successRate > filters.maxSuccessRate) {
-        return false
-      }
-      
-      if (filters.complexity && filters.complexity.length > 0 && !filters.complexity.includes(prompt.complexity)) {
-        return false
+      if (filters.testedModels && filters.testedModels.length > 0) {
+        const hasMatchingModel = filters.testedModels.some(model => 
+          prompt.testedModels && prompt.testedModels.includes(model)
+        )
+        if (!hasMatchingModel) return false
       }
       
       return true
