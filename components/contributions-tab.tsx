@@ -158,198 +158,51 @@ export function ContributionsTab() {
 
       <div className="flex space-x-4">
         <Button variant={step === "prompt" ? "default" : "outline"} onClick={() => setStep("prompt")}>
-          Submit Prompt
+          Submit Benchmark
         </Button>
         <Button variant={step === "protocol" ? "default" : "outline"} onClick={() => setStep("protocol")}>
-          Submit Protocol
+          Submit Dataset
         </Button>
       </div>
 
       {step === "prompt" ? (
-        <>
-          <form onSubmit={handlePromptSubmit} className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>New Prompt Submission</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label className="block text-sm">ID</label>
-                  <Input value={promptForm.id} onChange={e => updatePromptField("id", e.target.value)} />
-                  {promptErrors.id && <p className="text-red-600 text-sm">{promptErrors.id}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm">Title</label>
-                  <Input value={promptForm.title} onChange={e => updatePromptField("title", e.target.value)} />
-                  {promptErrors.title && <p className="text-red-600 text-sm">{promptErrors.title}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm">Description</label>
-                  <Textarea value={promptForm.description} onChange={e => updatePromptField("description", e.target.value)} />
-                  {promptErrors.description && <p className="text-red-600 text-sm">{promptErrors.description}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm">Attack Type</label>
-                  <Select value={promptForm.attackType} onValueChange={val => updatePromptField("attackType", val)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {attackTypes.map(t => (
-                        <SelectItem key={t} value={t}>{t}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {promptErrors.attackType && <p className="text-red-600 text-sm">{promptErrors.attackType}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm">Modalities</label>
-                  <div className="flex space-x-2">
-                    {modalitiesList.map(m => (
-                      <label key={m} className="flex items-center space-x-1">
-                        <Checkbox
-                          checked={promptForm.modalities.includes(m)}
-                          onCheckedChange={() => toggleModality(m)}
-                        />
-                        <span className="text-sm">{m}</span>
-                      </label>
-                    ))}
-                  </div>
-                  {promptErrors.modalities && <p className="text-red-600 text-sm">{promptErrors.modalities}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm">Threat Domain</label>
-                  <Select value={promptForm.threatDomain} onValueChange={val => updatePromptField("threatDomain", val)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {threatDomains.map(d => (
-                        <SelectItem key={d} value={d}>{d}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {promptErrors.threatDomain && <p className="text-red-600 text-sm">{promptErrors.threatDomain}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm">Target Model</label>
-                  <Input value={promptForm.targetModel} onChange={e => updatePromptField("targetModel", e.target.value)} />
-                  {promptErrors.targetModel && <p className="text-red-600 text-sm">{promptErrors.targetModel}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm">Content</label>
-                  <Textarea
-                    rows={4}
-                    value={promptForm.content}
-                    onChange={e => updatePromptField("content", e.target.value)}
-                  />
-                  {promptErrors.content && <p className="text-red-600 text-sm">{promptErrors.content}</p>}
-                </div>
-                <Separator />
-                <Button type="submit">Submit Prompt</Button>
-              </CardContent>
-            </Card>
-          </form>
-          <Card>
-            <CardHeader>
-              <CardTitle>Prompt Preview</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              <p><strong>ID:</strong> {promptForm.id}</p>
-              <p><strong>Title:</strong> {promptForm.title}</p>
-              <p><strong>Description:</strong> {promptForm.description}</p>
-              <p><strong>Attack Type:</strong> {promptForm.attackType}</p>
-              <p><strong>Modalities:</strong> {promptForm.modalities.join(", ")}</p>
-              <p><strong>Threat Domain:</strong> {promptForm.threatDomain}</p>
-              <p><strong>Target Model:</strong> {promptForm.targetModel}</p>
-              <p><strong>Content:</strong> {promptForm.content}</p>
-            </CardContent>
-          </Card>
-        </>
+        <Card>
+          <CardHeader>
+            <CardTitle>Submit Prompt</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <iframe 
+              src="https://docs.google.com/forms/d/e/1FAIpQLSc_C2R7hX1dgeQT7CQ0J1bCNe4DUeWs4OLaOKAAGE97z2r13Q/viewform?embedded=true" 
+              width="100%" 
+              height="1094" 
+              frameBorder="0" 
+              marginHeight="0" 
+              marginWidth="0"
+              className="w-full"
+            >
+              Loading…
+            </iframe>
+          </CardContent>
+        </Card>
       ) : (
-        <>
-          <form onSubmit={handleProtocolSubmit} className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>New Protocol Submission</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label className="block text-sm">ID</label>
-                  <Input value={protocolForm.id} onChange={e => updateProtocolField("id", e.target.value)} />
-                  {protocolErrors.id && <p className="text-red-600 text-sm">{protocolErrors.id}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm">Name</label>
-                  <Input value={protocolForm.name} onChange={e => updateProtocolField("name", e.target.value)} />
-                  {protocolErrors.name && <p className="text-red-600 text-sm">{protocolErrors.name}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm">Description</label>
-                  <Textarea value={protocolForm.description} onChange={e => updateProtocolField("description", e.target.value)} />
-                  {protocolErrors.description && <p className="text-red-600 text-sm">{protocolErrors.description}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm">Category</label>
-                  <Select value={protocolForm.category} onValueChange={val => updateProtocolField("category", val)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {protocolCategories.map(c => (
-                        <SelectItem key={c} value={c}>{c}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {protocolErrors.category && <p className="text-red-600 text-sm">{protocolErrors.category}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm">Version</label>
-                  <Input value={protocolForm.version} onChange={e => updateProtocolField("version", e.target.value)} />
-                  {protocolErrors.version && <p className="text-red-600 text-sm">{protocolErrors.version}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm">Organization</label>
-                  <Input value={protocolForm.organization} onChange={e => updateProtocolField("organization", e.target.value)} />
-                  {protocolErrors.organization && <p className="text-red-600 text-sm">{protocolErrors.organization}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm">Metrics (comma separated)</label>
-                  <Input value={metricsRaw} onChange={e => setMetricsRaw(e.target.value)} />
-                  {protocolErrors.metrics && <p className="text-red-600 text-sm">{protocolErrors.metrics}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm">Tested Models (comma separated)</label>
-                  <Input value={modelsRaw} onChange={e => setModelsRaw(e.target.value)} />
-                  {protocolErrors.testedModels && <p className="text-red-600 text-sm">{protocolErrors.testedModels}</p>}
-                </div>
-                <div>
-                  <label className="block text-sm">Official URL</label>
-                  <Input value={protocolForm.url} onChange={e => updateProtocolField("url", e.target.value)} />
-                  {protocolErrors.url && <p className="text-red-600 text-sm">{protocolErrors.url}</p>}
-                </div>
-                <Separator />
-                <Button type="submit">Submit Protocol</Button>
-              </CardContent>
-            </Card>
-          </form>
-          <Card>
-            <CardHeader>
-              <CardTitle>Protocol Preview</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              <p><strong>ID:</strong> {protocolForm.id}</p>
-              <p><strong>Name:</strong> {protocolForm.name}</p>
-              <p><strong>Description:</strong> {protocolForm.description}</p>
-              <p><strong>Category:</strong> {protocolForm.category}</p>
-              <p><strong>Version:</strong> {protocolForm.version}</p>
-              <p><strong>Organization:</strong> {protocolForm.organization}</p>
-              <p><strong>Metrics:</strong> {metricsRaw}</p>
-              <p><strong>Tested Models:</strong> {modelsRaw}</p>
-              <p><strong>URL:</strong> {protocolForm.url}</p>
-            </CardContent>
-          </Card>
-        </>
+        <Card>
+          <CardHeader>
+            <CardTitle>Submit Protocol</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <iframe 
+              src="https://docs.google.com/forms/d/e/1FAIpQLSc5Clpl56VZbPjC67qj8g1P5QKN5ogPZOlv84OjoeVqHmo2_Q/viewform?embedded=true" 
+              width="100%" 
+              height="959" 
+              frameBorder="0" 
+              marginHeight="0" 
+              marginWidth="0"
+              className="w-full"
+            >
+              Loading…
+            </iframe>
+          </CardContent>
+        </Card>
       )}
     </div>
 )
