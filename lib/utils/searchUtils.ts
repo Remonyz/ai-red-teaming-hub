@@ -10,7 +10,6 @@ const promptSearchOptions: IFuseOptions<PromptData> = {
     { name: 'source', weight: 0.1 },
     { name: 'testedModels', weight: 0.1 },
     { name: 'threatDomain', weight: 0.05 },
-    { name: 'modalities', weight: 0.05 }
   ],
   threshold: 0.4, // More lenient matching
   includeScore: true,
@@ -51,7 +50,6 @@ export const searchPrompts = (
   searchTerm: string,
   filters?: {
     attackType?: string
-    modalities?: string[]
     threatDomain?: string
     testedModels?: string[]
   }
@@ -63,13 +61,6 @@ export const searchPrompts = (
     results = prompts.filter(prompt => {
       if (filters.attackType && filters.attackType !== 'all' && prompt.attackType !== filters.attackType) {
         return false
-      }
-      
-      if (filters.modalities && filters.modalities.length > 0) {
-        const hasMatchingModality = filters.modalities.some(mod => 
-          prompt.modalities.includes(mod)
-        )
-        if (!hasMatchingModality) return false
       }
       
       if (filters.threatDomain && filters.threatDomain !== 'all' && prompt.threatDomain !== filters.threatDomain) {
@@ -168,7 +159,6 @@ export const getPromptSearchSuggestions = (prompts: PromptData[], partial: strin
       prompt.source,
       prompt.targetModel,
       prompt.threatDomain,
-      ...prompt.modalities
     ]
     
     terms.forEach(term => {
@@ -278,12 +268,6 @@ export const highlightMatches = (text: string, matches?: readonly Fuse.FuseResul
 // Extract unique values for filter options
 export const getUniqueAttackTypes = (prompts: PromptData[]): string[] => {
   return Array.from(new Set(prompts.map(p => p.attackType))).sort()
-}
-
-export const getUniqueModalities = (prompts: PromptData[]): string[] => {
-  const modalities = new Set<string>()
-  prompts.forEach(p => p.modalities.forEach(m => modalities.add(m)))
-  return Array.from(modalities).sort()
 }
 
 export const getUniqueThreatDomains = (prompts: PromptData[]): string[] => {

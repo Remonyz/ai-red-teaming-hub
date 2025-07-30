@@ -100,12 +100,64 @@ export function PromptsTab() {
   const sortedPrompts = useMemo(() => {
     const sorted = [...filteredPrompts]
     switch (sortBy) {
-      case "date":
-        return sorted.sort((a, b) => new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime())
+      case "date-desc":
+        return sorted.sort((a, b) => {
+          const dateA = new Date(a.dateAdded || '0').getTime()
+          const dateB = new Date(b.dateAdded || '0').getTime()
+          return dateB - dateA
+        })
+      case "date-asc":
+        return sorted.sort((a, b) => {
+          const dateA = new Date(a.dateAdded || '0').getTime()
+          const dateB = new Date(b.dateAdded || '0').getTime()
+          return dateA - dateB
+        })
+      case "title-asc":
+        return sorted.sort((a, b) => (a.title || '').localeCompare(b.title || ''))
+      case "title-desc":
+        return sorted.sort((a, b) => (b.title || '').localeCompare(a.title || ''))
+      case "source-asc":
+        return sorted.sort((a, b) => (a.source || '').localeCompare(b.source || ''))
+      case "source-desc":
+        return sorted.sort((a, b) => (b.source || '').localeCompare(a.source || ''))
+      case "count-desc":
+        return sorted.sort((a, b) => {
+          const countA = parseInt(a.promptCount) || 0
+          const countB = parseInt(b.promptCount) || 0
+          return countB - countA
+        })
+      case "count-asc":
+        return sorted.sort((a, b) => {
+          const countA = parseInt(a.promptCount) || 0
+          const countB = parseInt(b.promptCount) || 0
+          return countA - countB
+        })
+      case "attack-type":
+        return sorted.sort((a, b) => (a.attackType || '').localeCompare(b.attackType || ''))
+      case "relevance":
+        // For relevance, if there's a search term, maintain search result order
+        // Otherwise, sort by a combination of factors (date, prompt count, etc.)
+        if (searchTerm.trim()) {
+          return sorted // Keep search result order
+        } else {
+          // Default relevance: newer datasets with more prompts first
+          return sorted.sort((a, b) => {
+            const dateA = new Date(a.dateAdded || '0').getTime()
+            const dateB = new Date(b.dateAdded || '0').getTime()
+            const countA = parseInt(a.promptCount) || 0
+            const countB = parseInt(b.promptCount) || 0
+            
+            // Weighted score: 70% date recency + 30% prompt count
+            const scoreA = (dateA / 1000000000) * 0.7 + (countA / 1000) * 0.3
+            const scoreB = (dateB / 1000000000) * 0.7 + (countB / 1000) * 0.3
+            
+            return scoreB - scoreA
+          })
+        }
       default:
         return sorted
     }
-  }, [filteredPrompts, sortBy])
+  }, [filteredPrompts, sortBy, searchTerm])
 
   const paginatedPrompts = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage
@@ -122,16 +174,16 @@ export function PromptsTab() {
   const handleExport = async (format: 'json' | 'csv' | 'pdf') => {
     setIsExporting(true)
     try {
-      const dataToExport = filteredPrompts.map(prompt => ({
+      const dataToExport = sortedPrompts.map(prompt => ({
         title: prompt.title,
         description: prompt.description,
         attackType: prompt.attackType,
-        modalities: prompt.modalities,
         testedModels: prompt.testedModels || [],
         source: prompt.source,
         sourceUrl: prompt.sourceUrl,
         threatDomain: prompt.threatDomain,
         dateAdded: prompt.dateAdded,
+        promptCount: prompt.promptCount,
         content: prompt.content
       }))
 
@@ -219,24 +271,29 @@ export function PromptsTab() {
         <div className="flex justify-between items-center mb-6">
           <div>
             <h2 className="text-xl font-semibold">
-              Red Team Prompts ({filteredPrompts.length} results)
+              Red Team Prompts
             </h2>
             <p className="text-sm text-gray-600">
-              {allData.length} total records from {
-                [...new Set(allData.map(item => item.importSource?.type || 'unknown'))].join(', ')
-              } sources
+              Showing {filteredPrompts.length} prompts
             </p>
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center space-x-2">
               <span className="text-sm text-gray-600">Sort by:</span>
               <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-32">
+                <SelectTrigger className="w-40">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="relevance">Relevance</SelectItem>
-                  <SelectItem value="date">Date Added</SelectItem>
+                  <SelectItem value="date-desc">Date (Newest First)</SelectItem>
+                  <SelectItem value="date-asc">Date (Oldest First)</SelectItem>
+                  <SelectItem value="title-asc">Title (A-Z)</SelectItem>
+                  <SelectItem value="title-desc">Title (Z-A)</SelectItem>
+                  <SelectItem value="count-desc">Prompt Count (High-Low)</SelectItem>
+                  <SelectItem value="count-asc">Prompt Count (Low-High)</SelectItem>
+                  <SelectItem value="source-asc">Source (A-Z)</SelectItem>
+                  <SelectItem value="attack-type">Attack Type</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -260,24 +317,30 @@ export function PromptsTab() {
                         {prompt.category}
                       </Badge>
                     )}
-                    {(prompt.modalities || []).slice(0, 3).map((modality) => (
-                      <Badge key={modality} variant="secondary">
-                        {typeof modality === 'string' ? modality : String(modality)}
-                      </Badge>
-                    ))}
                     {prompt.testedModels && prompt.testedModels.length > 0 && (
                       <Badge variant="outline">{prompt.testedModels[0]}</Badge>
-                    )}
-                    {prompt.importSource?.type === 'csv_file' && (
-                      <Badge variant="outline" className="text-xs">
-                        From CSV
-                      </Badge>
                     )}
                   </div>
                 </div>
 
                 <h3 className="text-lg font-medium mb-2">{prompt.title}</h3>
                 <p className="text-gray-600 mb-3">{prompt.description}</p>
+
+                {/* Dataset Metadata */}
+                <div className="flex flex-wrap gap-4 mb-3 text-sm text-gray-500">
+                  {prompt.promptCount && prompt.promptCount !== "Unknown" && (
+                    <div className="flex items-center gap-1">
+                      <span className="font-medium">Prompts:</span>
+                      <span>{typeof prompt.promptCount === 'number' ? prompt.promptCount.toLocaleString() : prompt.promptCount}</span>
+                    </div>
+                  )}
+                  {prompt.dateAdded && prompt.dateAdded !== "Unknown" && (
+                    <div className="flex items-center gap-1">
+                      <span className="font-medium">Date:</span>
+                      <span>{prompt.dateAdded}</span>
+                    </div>
+                  )}
+                </div>
 
                 <div className="flex justify-between items-center text-sm text-gray-500">
                   <div>

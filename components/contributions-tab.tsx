@@ -19,7 +19,6 @@ export function ContributionsTab() {
     title: "",
     description: "",
     attackType: "",
-    modalities: [],
     threatDomain: "",
     targetModel: "",
     source: "",
@@ -45,7 +44,6 @@ export function ContributionsTab() {
   const [modelsRaw, setModelsRaw] = useState("")
 
   const attackTypes = ["jailbreak", "prompt-injection", "bias-exploit", "harmful-content", "misinformation", "backdoor", "multimodal-jailbreak"]
-  const modalitiesList = ["text", "code", "image", "audio"]
   const threatDomains = ["general", "cybersecurity", "cbrn", "healthcare", "finance"]
   const protocolCategories = ["safety", "bias", "robustness", "alignment", "security"]
 
@@ -56,16 +54,9 @@ export function ContributionsTab() {
     }
   }
 
-  const toggleModality = (mod: string) => {
-    const newMods = promptForm.modalities.includes(mod)
-      ? promptForm.modalities.filter(m => m !== mod)
-      : [...promptForm.modalities, mod]
-    updatePromptField("modalities", newMods)
-  }
-
   const validatePrompt = () => {
     const errors: { [key: string]: string } = {}
-    const required: (keyof PromptData)[] = ["id","title","description","attackType","modalities","threatDomain","targetModel","content"]
+    const required: (keyof PromptData)[] = ["id","title","description","attackType","threatDomain","targetModel","content"]
     required.forEach(field => {
       const val = promptForm[field]
       if (Array.isArray(val) ? val.length === 0 : !val) {
@@ -85,8 +76,7 @@ export function ContributionsTab() {
       title: "",
       description: "",
       attackType: "",
-      modalities: [],
-      threatDomain: "",
+        threatDomain: "",
       targetModel: "",
       source: "",
       sourceUrl: "",

@@ -373,11 +373,11 @@ export function DynamicFilters({
     const filterEntries = Object.entries(filterOptions)
     
     const primaryFilters = filterEntries.filter(([key]) => 
-      ['category', 'attackType', 'threatDomain', 'source', 'modalities'].includes(key)
+      ['category', 'attackType', 'threatDomain', 'source'].includes(key)
     )
     
     const secondaryFilters = filterEntries.filter(([key]) => 
-      !['category', 'attackType', 'threatDomain', 'source', 'modalities'].includes(key)
+      !['category', 'attackType', 'threatDomain', 'source'].includes(key)
     )
     
     return { primaryFilters, secondaryFilters }

@@ -66,11 +66,6 @@ export const DEFAULT_FIELD_MAPPINGS: FieldMapping = {
   ],
   
   // Technical Details
-  modalities: [
-    'modalities', 'modality', 'input_type', 'data_type', 'format',
-    'media_type', 'content_type', 'input_modalities', 'supported_formats',
-    'data_formats', 'input_formats'
-  ],
   
   // Dates and Versioning
   dateAdded: [

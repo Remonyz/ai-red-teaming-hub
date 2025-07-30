@@ -17,7 +17,7 @@ import {
   Database
 } from "lucide-react"
 import { ProtocolData } from "@/lib/utils/exportUtils"
-import { exportProtocolsAsJSON, exportProtocolsAsCSV, exportProtocolsAsPDF } from "@/lib/utils/exportUtils"
+import { exportProtocolsAsJSON, exportProtocolsAsCSV, exportProtocolsAsPDF, exportProtocolsAsText } from "@/lib/utils/exportUtils"
 import { useState } from "react"
 
 interface ProtocolDetailsModalProps {
@@ -41,7 +41,7 @@ export function ProtocolDetailsModal({ isOpen, onClose, protocol }: ProtocolDeta
     }
   }
 
-  const handleExportSingle = (format: 'json' | 'csv' | 'pdf') => {
+  const handleExportSingle = (format: 'json' | 'csv' | 'pdf' | 'text') => {
     const data = [protocol]
     switch (format) {
       case 'json':
@@ -52,6 +52,9 @@ export function ProtocolDetailsModal({ isOpen, onClose, protocol }: ProtocolDeta
         break
       case 'pdf':
         exportProtocolsAsPDF(data)
+        break
+      case 'text':
+        exportProtocolsAsText(data)
         break
     }
   }
@@ -339,6 +342,14 @@ export function ProtocolDetailsModal({ isOpen, onClose, protocol }: ProtocolDeta
               >
                 <Download className="h-4 w-4 mr-1" />
                 PDF
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => handleExportSingle('text')}
+              >
+                <FileText className="h-4 w-4 mr-1" />
+                Text
               </Button>
               <Button onClick={onClose}>
                 Close

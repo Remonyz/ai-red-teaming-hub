@@ -1,16 +1,19 @@
 import jsPDF from "jspdf"
 
 export interface PromptData {
+  id?: string
   title: string
   description: string
   attackType: string
-  modalities: string[]
   threatDomain: string
   testedModels?: string[]
   source: string
-  sourceUrl: string
+  sourceUrl?: string
   dateAdded: string
-  content: string
+  content?: string
+  targetModel?: string
+  successRate?: number
+  complexity?: number
 }
 
 export interface ProtocolData {
@@ -18,11 +21,12 @@ export interface ProtocolData {
   name: string
   description: string
   category: string
-  version: string
-  organization: string
-  metrics: string[]
-  testedModels: string[]
-  url: string
+  version?: string
+  organization?: string
+  metrics?: string[]
+  testedModels?: string[]
+  compatibleModels?: string[]
+  url?: string
 }
 
 // Helper function to generate timestamp for file names
@@ -61,7 +65,7 @@ export const exportProtocolsAsJSON = (data: ProtocolData[]): void => {
 // Export Prompts as CSV
 export const exportPromptsAsCSV = (data: PromptData[]): void => {
   const headers = [
-    'Title', 'Description', 'Attack Type', 'Modalities', 
+    'Title', 'Description', 'Attack Type', 
     'Threat Domain', 'Tested Models', 'Source', 
     'Source URL', 'Date Added'
   ]
@@ -69,15 +73,14 @@ export const exportPromptsAsCSV = (data: PromptData[]): void => {
   const csvRows = [
     headers.join(','),
     ...data.map(prompt => [
-      `"${prompt.title.replace(/"/g, '""')}"`,
-      `"${prompt.description.replace(/"/g, '""')}"`,
-      `"${prompt.attackType}"`,
-      `"${prompt.modalities.join('; ')}"`,
-      `"${prompt.threatDomain}"`,
+      `"${(prompt.title || '').replace(/"/g, '""')}"`,
+      `"${(prompt.description || '').replace(/"/g, '""')}"`,
+      `"${prompt.attackType || ''}"`,
+      `"${prompt.threatDomain || ''}"`,
       `"${(prompt.testedModels || []).join('; ')}"`,
-      `"${prompt.source.replace(/"/g, '""')}"`,
-      `"${prompt.sourceUrl}"`,
-      `"${prompt.dateAdded}"`
+      `"${(prompt.source || '').replace(/"/g, '""')}"`,
+      `"${prompt.sourceUrl || ''}"`,
+      `"${prompt.dateAdded || ''}"`
     ].join(','))
   ]
   
@@ -96,14 +99,14 @@ export const exportProtocolsAsCSV = (data: ProtocolData[]): void => {
   const csvRows = [
     headers.join(','),
     ...data.map(protocol => [
-      `"${protocol.name.replace(/"/g, '""')}"`,
-      `"${protocol.description.replace(/"/g, '""')}"`,
-      `"${protocol.category}"`,
-      `"${protocol.version}"`,
-      `"${protocol.organization.replace(/"/g, '""')}"`,
-      `"${protocol.metrics.join('; ')}"`,
-      `"${protocol.testedModels.join('; ')}"`,
-      `"${protocol.url}"`
+      `"${(protocol.name || '').replace(/"/g, '""')}"`,
+      `"${(protocol.description || '').replace(/"/g, '""')}"`,
+      `"${protocol.category || ''}"`,
+      `"${protocol.version || ''}"`,
+      `"${(protocol.organization || '').replace(/"/g, '""')}"`,
+      `"${(protocol.metrics || []).join('; ')}"`,
+      `"${(protocol.testedModels || []).join('; ')}"`,
+      `"${protocol.url || ''}"`
     ].join(','))
   ]
   
@@ -160,9 +163,7 @@ export const exportPromptsAsPDF = (data: PromptData[]): void => {
       yPosition += 6
     }
     
-    // Modalities
-    doc.text(`Modalities: ${prompt.modalities.join(', ')}`, 20, yPosition)
-    yPosition += 8
+    // Skip modalities section (removed from interface)
     
     // Description
     doc.setFont('helvetica', 'italic')
@@ -230,8 +231,10 @@ export const exportProtocolsAsPDF = (data: ProtocolData[]): void => {
     yPosition += 6
     
     // Organization
-    doc.text(`Organization: ${protocol.organization}`, 20, yPosition)
-    yPosition += 8
+    if (protocol.organization) {
+      doc.text(`Organization: ${protocol.organization}`, 20, yPosition)
+      yPosition += 8
+    }
     
     // Description
     doc.setFont('helvetica', 'italic')
@@ -240,24 +243,29 @@ export const exportProtocolsAsPDF = (data: ProtocolData[]): void => {
     yPosition += descriptionLines.length * 4 + 6
     
     // Metrics
-    doc.setFont('helvetica', 'bold')
-    doc.text('Metrics:', 20, yPosition)
-    yPosition += 4
-    doc.setFont('helvetica', 'normal')
-    const metricsText = protocol.metrics.join(', ')
-    const metricsLines = doc.splitTextToSize(metricsText, 160)
-    doc.text(metricsLines, 25, yPosition)
-    yPosition += metricsLines.length * 4 + 4
+    if (protocol.metrics && protocol.metrics.length > 0) {
+      doc.setFont('helvetica', 'bold')
+      doc.text('Metrics:', 20, yPosition)
+      yPosition += 4
+      doc.setFont('helvetica', 'normal')
+      const metricsText = protocol.metrics.join(', ')
+      const metricsLines = doc.splitTextToSize(metricsText, 160)
+      doc.text(metricsLines, 25, yPosition)
+      yPosition += metricsLines.length * 4 + 4
+    }
     
     // Compatible Models
-    doc.setFont('helvetica', 'bold')
-    doc.text('Compatible Models:', 20, yPosition)
-    yPosition += 4
-    doc.setFont('helvetica', 'normal')
-    const modelsText = protocol.compatibleModels.join(', ')
-    const modelsLines = doc.splitTextToSize(modelsText, 160)
-    doc.text(modelsLines, 25, yPosition)
-    yPosition += modelsLines.length * 4 + 4
+    const models = protocol.compatibleModels || protocol.testedModels || []
+    if (models.length > 0) {
+      doc.setFont('helvetica', 'bold')
+      doc.text('Compatible Models:', 20, yPosition)
+      yPosition += 4
+      doc.setFont('helvetica', 'normal')
+      const modelsText = models.join(', ')
+      const modelsLines = doc.splitTextToSize(modelsText, 160)
+      doc.text(modelsLines, 25, yPosition)
+      yPosition += modelsLines.length * 4 + 4
+    }
     
     // URL
     doc.text(`URL: ${protocol.url}`, 20, yPosition)
@@ -277,24 +285,44 @@ export const exportProtocolsAsPDF = (data: ProtocolData[]): void => {
 // Export Prompts as Text
 export const exportPromptsAsText = (data: PromptData[]): void => {
   const timestamp = getTimestamp()
-  data.forEach(prompt => {
+  data.forEach((prompt, index) => {
     const content = [
       `Title: ${prompt.title}`,
-      `ID: ${prompt.id}`,
+      ...(prompt.id ? [`ID: ${prompt.id}`] : []),
       `Description: ${prompt.description}`,
       `Attack Type: ${prompt.attackType}`,
-      `Modalities: ${prompt.modalities.join(', ')}`,
       `Threat Domain: ${prompt.threatDomain}`,
-      `Target Model: ${prompt.targetModel}`,
-      `Success Rate: ${prompt.successRate}%`,
-      `Source: ${prompt.source} (${prompt.sourceUrl})`,
+      ...(prompt.targetModel ? [`Target Model: ${prompt.targetModel}`] : []),
+      ...(prompt.testedModels && prompt.testedModels.length > 0 ? [`Tested Models: ${prompt.testedModels.join(', ')}`] : []),
+      ...(prompt.successRate ? [`Success Rate: ${prompt.successRate}%`] : []),
+      `Source: ${prompt.source}${prompt.sourceUrl ? ` (${prompt.sourceUrl})` : ''}`,
       `Date Added: ${prompt.dateAdded}`,
-      `Complexity: ${prompt.complexity}/5`,
+      ...(prompt.complexity ? [`Complexity: ${prompt.complexity}/5`] : []),
       ``,
-      `Prompt Content:`,
-      `${prompt.content}`
+      ...(prompt.content ? [`Prompt Content:`, `${prompt.content}`] : [])
     ].join('\n')
-    const filename = `red-team-prompt-${prompt.id}-${timestamp}.txt`
+    const filename = `red-team-prompt-${prompt.id || index + 1}-${timestamp}.txt`
+    downloadFile(content, filename, 'text/plain')
+  })
+}
+
+// Export Protocols as Text
+export const exportProtocolsAsText = (data: ProtocolData[]): void => {
+  const timestamp = getTimestamp()
+  data.forEach((protocol, index) => {
+    const content = [
+      `Name: ${protocol.name}`,
+      `ID: ${protocol.id}`,
+      `Description: ${protocol.description}`,
+      `Category: ${protocol.category}`,
+      ...(protocol.version ? [`Version: ${protocol.version}`] : []),
+      ...(protocol.organization ? [`Organization: ${protocol.organization}`] : []),
+      ...(protocol.metrics && protocol.metrics.length > 0 ? [`Metrics: ${protocol.metrics.join(', ')}`] : []),
+      ...(protocol.testedModels && protocol.testedModels.length > 0 ? [`Tested Models: ${protocol.testedModels.join(', ')}`] : []),
+      ...(protocol.compatibleModels && protocol.compatibleModels.length > 0 ? [`Compatible Models: ${protocol.compatibleModels.join(', ')}`] : []),
+      ...(protocol.url ? [`URL: ${protocol.url}`] : [])
+    ].join('\n')
+    const filename = `evaluation-protocol-${protocol.id}-${timestamp}.txt`
     downloadFile(content, filename, 'text/plain')
   })
 }

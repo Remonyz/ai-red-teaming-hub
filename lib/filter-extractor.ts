@@ -51,7 +51,6 @@ const FIELD_TYPE_CONFIG: Record<string, Partial<FilterOptionConfig>> = {
   category: { type: 'multiselect', multiSelect: true, label: 'Category' },
   attackType: { type: 'multiselect', multiSelect: true, label: 'Attack Type' },
   threatDomain: { type: 'select', label: 'Threat Domain' },
-  modalities: { type: 'multiselect', multiSelect: true, label: 'Modalities' },
   testedModels: { type: 'multiselect', multiSelect: true, label: 'Tested Models' },
   source: { type: 'multiselect', multiSelect: true, label: 'Source' },
   organization: { type: 'multiselect', multiSelect: true, label: 'Organization' },
@@ -98,7 +97,7 @@ function extractUniqueValues(
     }
     
     if (Array.isArray(value)) {
-      // Handle array fields (like modalities, tags)
+      // Handle array fields (like tags)
       value.forEach(v => {
         const stringValue = String(v).trim()
         if (stringValue || !excludeEmpty) {

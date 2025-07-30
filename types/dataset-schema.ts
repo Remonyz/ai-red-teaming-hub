@@ -46,7 +46,6 @@ export interface PromptDataset extends BaseDataset {
   riskLevel?: number | string
   
   // Technical specifications
-  modalities?: string | string[]
   testedModels?: string | string[]
   targetModel?: string // Legacy field, maps to testedModels
   
@@ -376,12 +375,6 @@ export const DATASET_FIELD_SCHEMA: Record<string, FieldMappingConfig> = {
         return false
       }
     }
-  },
-  modalities: {
-    standardField: 'modalities',
-    possibleNames: ['modalities', 'modality', 'input_type', 'format'],
-    required: false,
-    dataType: 'array'
   },
   testedModels: {
     standardField: 'testedModels',

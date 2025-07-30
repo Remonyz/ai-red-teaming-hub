@@ -154,17 +154,6 @@ export function PromptDetailsModal({ isOpen, onClose, prompt }: PromptDetailsMod
                   <span className="font-medium text-sm">Threat Domain:</span>
                   <Badge variant="secondary" className="ml-2 capitalize">{prompt.threatDomain}</Badge>
                 </div>
-                
-                <div>
-                  <span className="font-medium text-sm">Modalities:</span>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {prompt.modalities.map((modality) => (
-                      <Badge key={modality} variant="outline" className="text-xs capitalize">
-                        {modality}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
 
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4 text-gray-500" />

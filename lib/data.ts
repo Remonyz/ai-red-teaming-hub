@@ -5,14 +5,13 @@ const datasetFieldMapping = {
   sourceUrl: ['Dataset URL'],
   category: ['Task/Purpose'],
   description: ['Details'],
-  promptCount: ['Prompt Count'],
-  dateAdded: ['Date Added']
+  promptCount: ['Prompt/Sample Count'],
+  dateAdded: ['Date']
 }
 
 const protocolFieldMapping = {
   name: ['Benchmark Name'],
   category: ['Primary Focus'],
-  modalities: ['Modality'],
   description: ['Description'],
   url: ['Paper URL'],
   projectUrl: ['Project/GitHub/Dataset URL'],
@@ -23,7 +22,6 @@ const protocolFieldMapping = {
 const datasetDefaults = {
   promptCount: "Unknown",
   dateAdded: "Unknown",
-  modalities: ["text"],
   testedModels: [],
   attackType: "evaluation", // More accurate default
   threatDomain: "general",
@@ -62,11 +60,7 @@ const applyDefaults = (parsedData: any[], defaults: any, fieldMapping: any): any
           let value = String(item[csvCol]).trim()
           
           // Handle special cases
-          if (standardField === 'modalities' && value) {
-            result[standardField] = value.split(',').map(m => m.trim()).filter(m => m.length > 0)
-          } else {
-            result[standardField] = value
-          }
+          result[standardField] = value
           break
         }
       }

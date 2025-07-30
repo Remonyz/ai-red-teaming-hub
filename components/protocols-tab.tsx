@@ -16,6 +16,7 @@ import { DownloadDropdown } from "@/components/ui/download-dropdown"
 export function ProtocolsTab() {
   const [protocols, setProtocols] = useState<any[]>([])
   const [searchTerm, setSearchTerm] = useState("")
+  const [sortBy, setSortBy] = useState("relevance")
   const [selectedProtocol, setSelectedProtocol] = useState<any>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
@@ -35,9 +36,45 @@ export function ProtocolsTab() {
   }, [])
 
   // Enhanced search with fuzzy matching
-  const filteredProtocols = searchTerm 
+  const searchedProtocols = searchTerm 
     ? searchProtocols(protocols, searchTerm).map(result => result.item)
     : protocols
+
+  // Sorting functionality
+  const filteredProtocols = searchedProtocols.sort((a, b) => {
+    switch (sortBy) {
+      case "name-asc":
+        return (a.name || '').localeCompare(b.name || '')
+      case "name-desc":
+        return (b.name || '').localeCompare(a.name || '')
+      case "category-asc":
+        return (a.category || '').localeCompare(b.category || '')
+      case "category-desc":
+        return (b.category || '').localeCompare(a.category || '')
+      case "organization-asc":
+        return (a.organization || '').localeCompare(b.organization || '')
+      case "organization-desc":
+        return (b.organization || '').localeCompare(a.organization || '')
+      case "date-desc":
+        // If protocols have dateAdded field
+        const dateA = new Date(a.dateAdded || '0').getTime()
+        const dateB = new Date(b.dateAdded || '0').getTime()
+        return dateB - dateA
+      case "date-asc":
+        const dateA2 = new Date(a.dateAdded || '0').getTime()
+        const dateB2 = new Date(b.dateAdded || '0').getTime()
+        return dateA2 - dateB2
+      case "relevance":
+      default:
+        // For relevance, if there's a search term, maintain search result order
+        // Otherwise, sort by name
+        if (searchTerm.trim()) {
+          return 0 // Keep search result order
+        } else {
+          return (a.name || '').localeCompare(b.name || '')
+        }
+    }
+  })
 
   const getCategoryColor = (category: string) => {
     const lowerCategory = category.toLowerCase()
@@ -130,8 +167,27 @@ export function ProtocolsTab() {
         </div>
       </div>
 
-      {/* Results */}
-      <div className="text-sm text-gray-600 mb-4">Showing {filteredProtocols.length} protocols</div>
+      {/* Results and Sort Controls */}
+      <div className="flex justify-between items-center mb-4">
+        <div className="text-sm text-gray-600">Showing {filteredProtocols.length} protocols</div>
+        <div className="flex items-center space-x-2">
+          <span className="text-sm text-gray-600">Sort by:</span>
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-40">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="relevance">Relevance</SelectItem>
+              <SelectItem value="name-asc">Name (A-Z)</SelectItem>
+              <SelectItem value="name-desc">Name (Z-A)</SelectItem>
+              <SelectItem value="category-asc">Category (A-Z)</SelectItem>
+              <SelectItem value="category-desc">Category (Z-A)</SelectItem>
+              <SelectItem value="organization-asc">Organization (A-Z)</SelectItem>
+              <SelectItem value="organization-desc">Organization (Z-A)</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
 
       {/* Protocol Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -199,13 +255,6 @@ export function ProtocolsTab() {
                   <ExternalLink className="h-4 w-4 mr-2" />
                   View Protocol
                 </Button>
-                <DownloadDropdown
-                  onExport={(format) => handleExport(format)}
-                  isLoading={isExporting}
-                  itemCount={1}
-                  size="sm"
-                  variant="outline"
-                />
               </div>
             </CardContent>
           </Card>
